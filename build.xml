@@ -1,0 +1,33 @@
+<project default="all" basedir=".">
+    <property name="src" location="src" />
+    <property name="build" location="bin" />
+    <property name="dist" location="dist" />
+
+    <target name="init">
+	<mkdir dir="${build}" />
+	<mkdir dir="${dist}" />
+    </target>
+
+    <target name="shared" depends="init">
+	<javac srcdir="${src}/shared" destdir="${build}" />
+	<jar basedir="${build}/shared" destfile="${dist}/shared.jar" />
+    </target>
+
+    <target name="server" depends="shared">
+	<javac srcdir="${src}/server" destdir="${build}" classpath="${dist}/shared.jar" />
+	<jar basedir="${build}/server" destfile="${dist}/server.jar" />
+    </target>
+
+    <target name="client" depends="shared">
+	<javac srcdir="${src}/client" destdir="${build}" classpath="${dist}/shared.jar" />
+	<jar basedir="${build}/client" destfile="${dist}/client.jar" />
+    </target>
+
+    <target name="all" depends="client,server" />
+
+    <target name="clean">
+	<delete dir="${build}" />
+	<delete dir="${dist}" />
+    </target>
+
+</project>
