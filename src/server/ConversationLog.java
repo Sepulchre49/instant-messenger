@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 
+import shared.Message;
+
 public class ConversationLog {
     private Date timeStamp;
     private int senderID;

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import shared.Message;
+
 public class Conversation {
     private int id;
     private Set<ServerUser> participants;
