@@ -56,7 +56,10 @@ class Session implements Runnable {
         String regex = "username:\\s*(\\w{3,})\\s+password:\\s*(\\w{6,})";
         Matcher matcher = Pattern.compile(regex).matcher(m.getContent());
 
-        Message res;
+        Message res = new Message(
+                    Message.Type.LOGIN, 
+                    Message.Status.FAILURE, 
+                    "Failed to log in!");
 
         if (matcher.find()) {
             String username = matcher.group(1);
@@ -70,17 +73,7 @@ class Session implements Runnable {
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
                         "Successfully logged in!");
-            } else {
-                res = new Message(
-                    Message.Type.LOGIN, 
-                    Message.Status.FAILURE, 
-                    "Failed to log in!");
             }
-        } else {
-            res = new Message(
-                    Message.Type.LOGIN, 
-                    Message.Status.FAILURE, 
-                    "Failed to log in!");
         }
 
         isLoggedIn = true; // temporary hack to prevent server from spinning waiting for new login msg
