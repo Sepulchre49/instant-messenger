@@ -10,10 +10,11 @@ public class Client {
 	private String host = "127.0.0.1";
 	private int port = 5000;
 	private final ClientUser user = new ClientUser();
+	private final GUI clientGUI = new GUI();
 
 
 	public void connectToServer(){
-		try (Scanner scanner = new Scanner(System.in)){ // The instantiation of scanner
+		try (Scanner scanner = new Scanner(System.in)){ // The instantiation of scanner. Will be removed when GUI is implemented.
 			System.out.println("Enter the host address to connect to: <127.0.0.1>");
 			String inputHost = scanner.nextLine(); // To be replaced with an automatic scan of the input
 
