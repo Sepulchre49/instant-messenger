@@ -47,6 +47,7 @@ public class LoginView extends JFrame implements ActionListener {
         // Show the frame
         setVisible(true);
     }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == loginButton) {

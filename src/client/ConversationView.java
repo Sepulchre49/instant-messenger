@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 
-public class ConversationView extends JFrame{
+public class ConversationView extends JFrame {
     private JFrame panel;
     private JTextArea chatArea;
     private JTextField messageField;
@@ -15,7 +15,7 @@ public class ConversationView extends JFrame{
     private JScrollPane scrollPane;
     private JLabel recipientLabel;
 
-    public ConversationView(){
+    public ConversationView() {
         // main frame
         super("Conversation");
         setSize(625, 575);
@@ -29,7 +29,7 @@ public class ConversationView extends JFrame{
 
         // back button
         backButton = new JButton("<");
-        backButton.setPreferredSize(new Dimension(45,45));
+        backButton.setPreferredSize(new Dimension(45, 45));
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -40,7 +40,7 @@ public class ConversationView extends JFrame{
 
         // CID :: Recipient's name
         recipientLabel = new JLabel("[CID] [Recipient (s)]", SwingConstants.LEFT);
-        recipientLabel.setBorder(BorderFactory.createEmptyBorder(0, 10 ,0, 0));
+        recipientLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         header.add(recipientLabel, BorderLayout.CENTER);
 
         // collation of header
@@ -76,7 +76,7 @@ public class ConversationView extends JFrame{
         setVisible(true);
     }
 
-    private void sendMessage(){
+    private void sendMessage() {
         // Get the text from the message field
         String message = messageField.getText().trim();
 
@@ -89,7 +89,7 @@ public class ConversationView extends JFrame{
         }
     }
 
-    public static void main(String[] args){ // Another testing function. I really want to drink a soda
+    public static void main(String[] args) { // Another testing function. I really want to drink a soda
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 new ConversationView();

@@ -5,11 +5,11 @@ import javax.swing.*;
 public class GUI {
     private JPanel currentView;
 
-    void initView(){
+    void initView() {
         new LoginView();
     }
 
-    void displayView(JPanel view){
+    void displayView(JPanel view) {
 
     }
 }
