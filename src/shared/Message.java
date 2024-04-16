@@ -1,6 +1,8 @@
 package shared;
 
-public class Message {
+import java.io.Serializable;
+
+public class Message implements Serializable {
     public enum Type {
 	LOGIN,
 	LOGOUT,
@@ -8,6 +10,7 @@ public class Message {
     }
 
     public enum Status {
+	REQUEST,
 	SUCCESS,
 	FAILURE,
 	ERROR,
@@ -19,17 +22,17 @@ public class Message {
     private String content;
 
     public Message(Type t, Status s, String msg) {
-	this.type = t;
-	this.status = s;
-	this.content = msg;
+        this.type = t;
+        this.status = s;
+        this.content = msg;
     }
 
     public Type getType() {
-	return type;
+        return type;
     }
 
     public Status getStatus() {
-	return status;
+        return status;
     }
 
     public String getContent() {
