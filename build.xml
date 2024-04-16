@@ -10,12 +10,6 @@
 
     <target name="shared" depends="init">
 	<javac srcdir="${src}/shared" destdir="${build}" includeantruntime="false" />
-	<jar destfile="${dist}/shared.jar">
-	    <fileset dir="${build}">
-		<include name="shared"/>
-		<include name="shared/*.class"/>
-	    </fileset>
-	</jar>
     </target>
 
     <target name="server" depends="shared">
@@ -27,6 +21,8 @@
 	    <fileset dir="${build}">
 		<include name="server"/>
 		<include name="server/*.class"/>
+		<include name="shared"/>
+		<include name="shared/*.class"/>
 	    </fileset>
 	</jar>
     </target>
@@ -40,6 +36,8 @@
 	    <fileset dir="${build}">
 		<include name="client"/>
 		<include name="client/*.class"/>
+		<include name="shared"/>
+		<include name="shared/*.class"/>
 	    </fileset>
 	</jar>
     </target>
