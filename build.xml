@@ -24,6 +24,7 @@
 		<include name="shared"/>
 		<include name="shared/*.class"/>
 	    </fileset>
+            <fileset dir="." includes="users.txt" />
 	</jar>
     </target>
 
