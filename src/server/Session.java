@@ -36,10 +36,10 @@ class Session implements Runnable {
     private void waitForLogin() {
         do {
             try {
-            System.out.println("Received new message from " + clientAddress);
-            Message m = (Message) in.readObject();
-            if (m.getType() == Message.Type.LOGIN)
-                handleLogin(m);
+                System.out.println("Received new message from " + clientAddress);
+                Message m = (Message) in.readObject();
+                if (m.getType() == Message.Type.LOGIN)
+                    handleLogin(m);
             } catch (IOException e) {
                 System.out.println("Error reading object from the input stream while waiting for login message from "
                         + clientAddress);
@@ -62,12 +62,20 @@ class Session implements Runnable {
             String username = matcher.group(1);
             String password = matcher.group(2);
             String logMsg = String.format("Found username: %s, password: %s", username, password);
-            System.out.println(logMsg);
 
-            res = new Message(
+            user = server.login(username, password);
+
+            if (user != null) {
+                res = new Message(
+                        Message.Type.LOGIN, 
+                        Message.Status.SUCCESS, 
+                        "Successfully logged in!");
+            } else {
+                res = new Message(
                     Message.Type.LOGIN, 
-                    Message.Status.SUCCESS, 
-                    "Successfully logged in!");
+                    Message.Status.FAILURE, 
+                    "Failed to log in!");
+            }
         } else {
             res = new Message(
                     Message.Type.LOGIN, 
@@ -75,7 +83,7 @@ class Session implements Runnable {
                     "Failed to log in!");
         }
 
-        isLoggedIn = true;
+        isLoggedIn = true; // temporary hack to prevent server from spinning waiting for new login msg
 
         try {
             out.writeObject(res);
