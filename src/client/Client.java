@@ -7,7 +7,6 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
-	private final Scanner scanner = new Scanner(System.in); //to be removed after GUI implementation.
 	private String host;
 	private int port;
 	private Socket socket;
@@ -24,6 +23,8 @@ public class Client {
 
 
     public void connectToServer() throws IOException {
+		Scanner scanner = new Scanner(System.in); //to be removed after GUI implementation.
+
 		try {
 			System.out.println("Enter the host address to connect to: <127.0.0.1>");
 			String inputHost = scanner.nextLine();
@@ -50,7 +51,7 @@ public class Client {
 
 	public boolean login(String username, String password){
 //		boolean success = false;
-//		Message login = new Message(Message.Type.LOGIN, Message.Status.SENT, "Login Request");
+//		Message login = new Message(Message.Type.LOGIN, Message.Status.SENT, "username:" + username + "password: " + password);
 //		write.writeObject(login)
 //
 //		Message loginReceipt = (Message) read.readObject();
@@ -70,7 +71,7 @@ public class Client {
 //		write.writeObject(logout);
 
 //		Message logoutReceipt = (Message) read.readObject();
-//		if (logoutReceipt.getType() == Message.Type.LOGOUT && logoutReceipt.getStatus() == Message.Status.Success){
+//		if (logoutReceipt.getType() == logoutReceipt.Type.LOGOUT && logoutReceipt.getStatus() == logoutReceipt.Status.Success){
 //			success = true;
 //			read.close();
 //			write.close();
@@ -119,6 +120,7 @@ public class Client {
 //		if(client.login(user, pass)){
 //			while (!(line = scanner.nextLine().equalsIgnoreCase("logout"))){
 //				Message message = new Message(message.Type.text, message.Status.SENT, line);
+//				receiveMessage(message);
 //			}
 //		}
 	}
