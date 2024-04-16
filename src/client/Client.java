@@ -120,7 +120,7 @@ public class Client {
 //		if(client.login(user, pass)){
 //			while (!(line = scanner.nextLine().equalsIgnoreCase("logout"))){
 //				Message message = new Message(message.Type.text, message.Status.SENT, line);
-//				receiveMessage(message);
+//				sendMessage(message);
 //			}
 //		}
 	}
