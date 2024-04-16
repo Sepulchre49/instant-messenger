@@ -4,17 +4,17 @@ import java.io.Serializable;
 
 public class Message implements Serializable {
     public enum Type {
-	LOGIN,
-	LOGOUT,
-	TEXT
+        LOGIN,
+        LOGOUT,
+        TEXT
     }
 
     public enum Status {
-	REQUEST,
-	SUCCESS,
-	FAILURE,
-	ERROR,
-	INVALID_ARGUMENT
+        REQUEST,
+        SUCCESS,
+        FAILURE,
+        ERROR,
+        INVALID_ARGUMENT
     }
 
     private Type type;
@@ -36,6 +36,6 @@ public class Message implements Serializable {
     }
 
     public String getContent() {
-	return content;
+        return content;
     }
 }
