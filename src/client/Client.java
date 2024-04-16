@@ -7,44 +7,41 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
-	private String host = "127.0.0.1";
-	private int port = 5000;
+	private final Scanner scanner = new Scanner(System.in); //to be removed after GUI implementation.
+	private String host;
+	private int port;
+	private Socket socket;
+	private ObjectOutputStream write;
+	private ObjectInputStream read;
+
 	private final ClientUser user = new ClientUser();
 	private final GUI clientGUI = new GUI();
 
+    public Client() {
+		this.host = "127.0.0.1";
+		this.port = 3000;
+    }
 
-	public void connectToServer(){
-		try (Scanner scanner = new Scanner(System.in)){ // The instantiation of scanner. Will be removed when GUI is implemented.
+
+    public void connectToServer() throws IOException {
+		try {
 			System.out.println("Enter the host address to connect to: <127.0.0.1>");
-			String inputHost = scanner.nextLine(); // To be replaced with an automatic scan of the input
+			String inputHost = scanner.nextLine();
 
 			if (!inputHost.isEmpty()) {
-				host = inputHost;
+				this.host = inputHost;
 			}
 
-			System.out.println("Enter the port number to connect to: <5000>");
+			System.out.println("Enter the port number to connect to: <3000>");
 			String inputPort = scanner.nextLine();
 
-			if(!inputPort.isEmpty()){
-				port = Integer.parseInt(inputPort);
+			if (!inputPort.isEmpty()) {
+				this.port = Integer.parseInt(inputPort);
 			}
 
-			// The attemption to connect to the server and handle comms. This has to work! PLEASE!!!!
-			try (Socket socket = new Socket(host, port)){ // If this works, the socket will instantiate the write and read
-				ObjectOutputStream write = new ObjectOutputStream(socket.getOutputStream());
-				ObjectInputStream read = new ObjectInputStream(socket.getInputStream());
-
-				/*
-				* do{
-				* String usernameInput = scanner.nextLine();
-				* String passwordInput = scanner.nextLine();
-				*
-				* } while(!login(usernameInput, passwordInput);)
-				* */
-
-				System.out.println("Connected to " + host + ":" + port);
-
-			}
+			this.socket = new Socket(host, port);
+			this.write = new ObjectOutputStream(socket.getOutputStream());
+			this.read = new ObjectInputStream(socket.getInputStream());
 
 		} catch (IOException e){
 			System.err.println("Error in I/O operations: " + e.getMessage());
@@ -52,24 +49,19 @@ public class Client {
 		}
 	}
 
-	public boolean login(String username, String password) throws IOException{
-		return false; // STUB
+	public boolean login(String username, String password){
+		return false;
 	}
 
 	public boolean logout(){
-		//if button from GUI is pressed epic style:
-		//writer.writeObject(logout)
-		//print("Logging you out")
-		//
-
-		return false; // STUB
+		return false;
 	}
 
 	public void viewConversation(int conversationID){
 
 	}
 
-	public void sendMessage(Message message, ObjectOutputStream write, ObjectInputStream read) throws IOException{
+	public void sendMessage(Message message) throws IOException{
 
 	}
 
@@ -79,7 +71,7 @@ public class Client {
 
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		System.out.println("Hello from the client!");
 
 		Client client = new Client();
