@@ -1,6 +1,9 @@
 bin/
 dist/
 
+# User database
+users.txt
+
 # Compiled class file
 *.class
 
