@@ -64,8 +64,15 @@ public class Client {
         return res.getStatus().equals(Message.Status.SUCCESS);
     }
 
-    public boolean logout() {
-        return false; // STUB: REMOVE
+    public boolean logout() throws IOException, ClassNotFoundException {
+        write.writeObject(new Message(
+            Message.Type.LOGOUT,
+            Message.Status.REQUEST,
+            "Logging out!"));
+
+        Message res = (Message) read.readObject();
+        System.out.println(res.getContent());
+        return res.getStatus() == Message.Status.SUCCESS;
     }
 
     public void viewConversation(int conversationID) {
@@ -75,6 +82,7 @@ public class Client {
     public void sendMessage(Message message) throws IOException, ClassNotFoundException {
         write.writeObject(message);
         Message res = (Message) read.readObject();
+        System.out.println(res.getContent());
     }
 
     public void receiveMessage(Message message) {
@@ -98,19 +106,26 @@ public class Client {
         if (client.login(user, pass)) {
             System.out.println("Successfully logged in.");
 
-            String in = scanner.next();
-            while (!in.equals("quit")) {
+            boolean quit = false;
+            do {
+                System.out.println("Enter a message, or type 'logout' to quit: ");
+                String in = scanner.nextLine();
                 if (in.equals("logout")) {
-                    client.logout();
+                    System.out.println("Logging out...");
+                    
+                    if (client.logout()) {
+                        System.out.println("(Client) Successfully logged out.");
+                    } else {
+                        System.out.println("Error logging out.");
+                    }
+                    quit = true;
                 } else {
-                    Message m = new Message(
+                    client.sendMessage(new Message(
                         Message.Type.TEXT, 
                         Message.Status.REQUEST, 
-                        in
-                    );
-                    client.sendMessage(m);
+                        in));
                 }
-            }
+            } while (!quit);
         }
     }
 }
