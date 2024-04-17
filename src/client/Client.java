@@ -86,8 +86,8 @@ public class Client implements Runnable {
     public void viewConversation(int conversationID) {
     }
 
-    public void sendMessage(String message) throws IOException{
-        Message txt = new Message(Message.Type.TEXT,Message.Status.REQUEST, message);
+    public void sendMessage(String message) throws IOException {
+        Message txt = new Message(Message.Type.TEXT, Message.Status.REQUEST, message);
         write.writeObject(txt);
     }
 
@@ -98,6 +98,9 @@ public class Client implements Runnable {
                 case TEXT:
                     if (message.getStatus() == Message.Status.SUCCESS) {
                         System.out.println("Message from the server: " + message.getContent());
+
+                    } else if (message.getStatus() == Message.Status.FAILURE) {
+                        System.out.println("The server failed to send a message.");
                     }
                     break;
 
