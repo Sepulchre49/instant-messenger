@@ -2,7 +2,9 @@ package client;
 
 import shared.Message;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -49,60 +51,38 @@ public class Client {
         }
     }
 
-    public boolean login(String username, String password) {
-//		boolean success = false;
-//		Message login = new Message(Message.Type.LOGIN, Message.Status.SENT, "username:" + username + "password: " + password);
-//		write.writeObject(login)
-//
-//		Message loginReceipt = (Message) read.readObject();
-//		if (loginReceipt.getType() == loginReceipt.Type.LOGIN && loginReceipt.getStatus() == loginReceipt.Status.SUCCESS){
-//			success = true;
-//			System.out.println("You've logged in!");
-//		} else { System.out.println("Wrong credentials. Try again."); }
-//
-//		return success;
-//
-        return false; // STUB: REMOVE
+    public boolean login(String username, String password) throws IOException, ClassNotFoundException {
+        Message m = new Message(
+            Message.Type.LOGIN, 
+            Message.Status.REQUEST,
+            String.format("username: %s password: %s", username, password)
+        );
+
+        write.writeObject(m);
+        Message res = (Message) read.readObject();
+        System.out.println(res.getContent());
+        return res.getStatus().equals(Message.Status.SUCCESS);
     }
 
     public boolean logout() {
-//		boolean success = false;
-//		Message logout = new Message(Message.Type.LOGOUT, Message.Status.SENT, "Logout Request");
-//		write.writeObject(logout);
-
-//		Message logoutReceipt = (Message) read.readObject();
-//		if (logoutReceipt.getType() == logoutReceipt.Type.LOGOUT && logoutReceipt.getStatus() == logoutReceipt.Status.Success){
-//			success = true;
-//			read.close();
-//			write.close();
-//			socket.close();
-//			System.out.println("Logging out... See you again soon!");
-//		}
-//		return success;
-
         return false; // STUB: REMOVE
     }
 
     public void viewConversation(int conversationID) {
+
     }
 
-    public void sendMessage(Message message) throws IOException {
-//		write.writeObject(message);
-//		Message messageReceipt = (Message) read.readObject();
-//
-//
-//
-//
+    public void sendMessage(Message message) throws IOException, ClassNotFoundException {
+        write.writeObject(message);
+        Message res = (Message) read.readObject();
     }
 
     public void receiveMessage(Message message) {
-//		if (message.getType() == message.Type.TEXT && message.getStatus() == message.Status.RECEIVED){
-//			System.out.println("Recipient: " + message.getText());
-//		} else { System.out.println("Uh oh... Something wicked comes."); }
+
     }
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         System.out.println("Hello from the client!");
         Scanner scanner = new Scanner(System.in);
 
@@ -115,12 +95,22 @@ public class Client {
         System.out.println("Password: ");
         String pass = scanner.nextLine();
 
-        String line;
-//		if(client.login(user, pass)){
-//			while (!(line = scanner.nextLine().equalsIgnoreCase("logout"))){
-//				Message message = new Message(message.Type.text, message.Status.SENT, line);
-//				sendMessage(message);
-//			}
-//		}
+        if (client.login(user, pass)) {
+            System.out.println("Successfully logged in.");
+
+            String in = scanner.next();
+            while (!in.equals("quit")) {
+                if (in.equals("logout")) {
+                    client.logout();
+                } else {
+                    Message m = new Message(
+                        Message.Type.TEXT, 
+                        Message.Status.REQUEST, 
+                        in
+                    );
+                    client.sendMessage(m);
+                }
+            }
+        }
     }
 }

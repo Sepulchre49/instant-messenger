@@ -43,16 +43,15 @@ class Session implements Runnable {
             } catch (IOException e) {
                 System.out.println("Error reading object from the input stream while waiting for login message from "
                         + clientAddress);
-                e.printStackTrace();
             } catch (ClassNotFoundException e) {
                 System.out.println(
                         "Could not find serialized class while waiting for login message from " + clientAddress);
-                e.printStackTrace();
+                System.exit(1);
             }
         } while (!isLoggedIn);
     }
 
-    private void handleLogin(Message m) {
+    private void handleLogin(Message m) throws IOException {
         String regex = "username:\\s*(\\w{3,})\\s+password:\\s*(\\w{6,})";
         Matcher matcher = Pattern.compile(regex).matcher(m.getContent());
 
@@ -78,14 +77,10 @@ class Session implements Runnable {
 
         isLoggedIn = true; // temporary hack to prevent server from spinning waiting for new login msg
 
-        try {
-            out.writeObject(res);
-            out.close();
-            in.close();
-            client.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        out.writeObject(res);
+        out.close();
+        in.close();
+        client.close();
     }
 
     private void handleDuplicateLogin() {
@@ -126,6 +121,7 @@ class Session implements Runnable {
     }
 
     private void doMessageLoop() throws IOException {
+        boolean quit = false;
         do {
             // Read a message
             try {
@@ -143,13 +139,14 @@ class Session implements Runnable {
                 }
             } catch (IOException e) {
                 System.out.println("Error while reading messages from " + clientAddress);
-                e.printStackTrace();
                 System.out.println("Terminating connection with " + clientAddress);
                 logout();
+                quit = true;
             } catch (ClassNotFoundException e) {
                 System.out.println("Could not find serialized class for message from " + clientAddress);
+                quit = true;
             }
-        } while (isLoggedIn);
+        } while (!quit);
     }
 
     @Override
@@ -158,9 +155,9 @@ class Session implements Runnable {
         try {
             doMessageLoop();
         } catch (IOException e) {
-            System.out.println("An exception occured while trying to logout client " + clientAddress
-                    + " in response to an invalid state in the message loop.");
+            System.out.println("An exception occured while processing message loop for client " + clientAddress);
             e.printStackTrace();
+            System.exit(1);
         }
     }
 }
