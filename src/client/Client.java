@@ -23,7 +23,7 @@ public class Client implements Runnable {
     }
 
 
-    public void connectToServer() throws IOException {
+    public void connectToServer() {
         Scanner scanner = new Scanner(System.in); //to be removed after GUI implementation.
 
         try {
