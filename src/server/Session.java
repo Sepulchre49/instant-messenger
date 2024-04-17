@@ -36,7 +36,7 @@ class Session implements Runnable {
     private void waitForLogin() {
         do {
             try {
-                System.out.println("Received new message from " + clientAddress);
+                System.out.println("Received new connection request from " + clientAddress);
                 Message m = (Message) in.readObject();
                 if (m.getType() == Message.Type.LOGIN)
                     handleLogin(m);
@@ -78,9 +78,6 @@ class Session implements Runnable {
         isLoggedIn = true; // temporary hack to prevent server from spinning waiting for new login msg
 
         out.writeObject(res);
-        out.close();
-        in.close();
-        client.close();
     }
 
     private void handleDuplicateLogin() {
@@ -107,6 +104,8 @@ class Session implements Runnable {
         out.writeObject(
                 new Message(Message.Type.LOGOUT, Message.Status.SUCCESS, "You have been logged out of the server."));
         isLoggedIn = false;
+        out.close();
+        in.close();
         client.close();
     }
 
@@ -132,6 +131,7 @@ class Session implements Runnable {
                         break;
                     case LOGOUT:
                         handleLogout();
+                        quit = true;
                         break;
                     case LOGIN:
                         handleDuplicateLogin();
