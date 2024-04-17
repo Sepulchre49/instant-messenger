@@ -86,8 +86,9 @@ public class Client implements Runnable {
     public void viewConversation(int conversationID) {
     }
 
-    public void sendMessage(Message message) throws IOException, ClassNotFoundException {
-        write.writeObject(message);
+    public void sendMessage(String message) throws IOException{
+        Message txt = new Message(Message.Type.TEXT,Message.Status.REQUEST, message);
+        write.writeObject(txt);
     }
 
     public void receiveMessages() throws IOException, ClassNotFoundException {
@@ -147,8 +148,7 @@ public class Client implements Runnable {
 
             System.out.println("You can now print messages! Type 'logout' to logout!");
             while (!(message = scanner.nextLine()).equalsIgnoreCase("logout")) {
-                Message textMessage = new Message(Message.Type.TEXT, Message.Status.REQUEST, message);
-                client.sendMessage(textMessage);
+                client.sendMessage(message);
             }
 
             client.logout();
