@@ -9,18 +9,38 @@
     </target>
 
     <target name="shared" depends="init">
-	<javac srcdir="${src}/shared" destdir="${build}" />
-	<jar basedir="${build}/shared" destfile="${dist}/shared.jar" />
+	<javac srcdir="${src}/shared" destdir="${build}" includeantruntime="false" />
     </target>
 
     <target name="server" depends="shared">
-	<javac srcdir="${src}/server" destdir="${build}" classpath="${dist}/shared.jar" />
-	<jar basedir="${build}/server" destfile="${dist}/server.jar" />
+	<javac srcdir="${src}/server" destdir="${build}" classpath="${dist}/shared.jar" includeantruntime="false" />
+	<jar basedir="${build}/server" destfile="${dist}/server.jar">
+	    <manifest>
+		<attribute name="Main-Class" value="server.Server" />
+	    </manifest>
+	    <fileset dir="${build}">
+		<include name="server"/>
+		<include name="server/*.class"/>
+		<include name="shared"/>
+		<include name="shared/*.class"/>
+	    </fileset>
+            <fileset dir="." includes="users.txt" />
+	</jar>
     </target>
 
     <target name="client" depends="shared">
-	<javac srcdir="${src}/client" destdir="${build}" classpath="${dist}/shared.jar" />
-	<jar basedir="${build}/client" destfile="${dist}/client.jar" />
+	<javac srcdir="${src}/client" destdir="${build}" classpath="${dist}/shared.jar" includeantruntime="false" />
+	<jar basedir="${build}/client" destfile="${dist}/client.jar">
+	    <manifest>
+		<attribute name="Main-Class" value="client.Client" />
+	    </manifest>
+	    <fileset dir="${build}">
+		<include name="client"/>
+		<include name="client/*.class"/>
+		<include name="shared"/>
+		<include name="shared/*.class"/>
+	    </fileset>
+	</jar>
     </target>
 
     <target name="all" depends="client,server" />
