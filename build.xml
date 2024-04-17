@@ -43,6 +43,14 @@
 	</jar>
     </target>
 
+    <target name="run-server" depends="server">
+        <java jar="${dist}/server.jar" fork="true" />
+    </target>
+
+    <target name="run-client" depends="client">
+        <java jar="${dist}/client.jar" fork="true" />
+    </target>
+
     <target name="all" depends="client,server" />
 
     <target name="clean">
