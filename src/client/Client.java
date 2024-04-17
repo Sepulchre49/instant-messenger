@@ -52,7 +52,7 @@ public class Client implements Runnable {
 
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
         boolean success = false;
-        Message login = new Message(Message.Type.LOGIN, Message.Status.REQUEST, "username:" + username + "password: " + password);
+        Message login = new Message(Message.Type.LOGIN, Message.Status.REQUEST, "username: " + username + " password: " + password);
         write.writeObject(login);
 
         Message loginReceipt = (Message) read.readObject();
