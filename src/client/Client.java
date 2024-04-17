@@ -117,7 +117,7 @@ public class Client implements Runnable {
                 receiveMessages();
             }
         } catch (IOException e) {
-            System.out.println("IOexception in receiveMessage!");
+            System.out.println("IOException in receiveMessage!");
             e.printStackTrace();
 
         } catch (ClassNotFoundException e) {
@@ -139,9 +139,9 @@ public class Client implements Runnable {
         System.out.println("Password: ");
         String pass = scanner.nextLine();
 
-        String message;
-
         if (client.login(user, pass)) {
+            String message;
+
             Thread listener = new Thread(client); // Will now listen for messages.
             listener.start();
 
