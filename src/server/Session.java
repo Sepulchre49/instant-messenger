@@ -12,7 +12,6 @@ import shared.Message;
 class Session implements Runnable {
     private Socket client;
     private String clientAddress;
-    private boolean isLoggedIn;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private Server server;
@@ -22,7 +21,6 @@ class Session implements Runnable {
         this.server = server;
         client = s;
         clientAddress = client.getInetAddress().getHostAddress();
-        isLoggedIn = false;
         System.out.println("Connection created with " + clientAddress);
         try {
             in = new ObjectInputStream(client.getInputStream());
@@ -34,12 +32,13 @@ class Session implements Runnable {
     }
 
     private void waitForLogin() {
+        boolean isLoggedIn = false;
         do {
             try {
                 System.out.println("Received new connection request from " + clientAddress);
                 Message m = (Message) in.readObject();
                 if (m.getType() == Message.Type.LOGIN)
-                    handleLogin(m);
+                    isLoggedIn = handleLogin(m);
             } catch (IOException e) {
                 System.out.println("Error reading object from the input stream while waiting for login message from "
                         + clientAddress);
@@ -51,7 +50,8 @@ class Session implements Runnable {
         } while (!isLoggedIn);
     }
 
-    private void handleLogin(Message m) throws IOException {
+    private boolean handleLogin(Message m) throws IOException {
+        boolean success = false;
         String regex = "username:\\s*(\\w{3,})\\s+password:\\s*(\\w{6,})";
         Matcher matcher = Pattern.compile(regex).matcher(m.getContent());
 
@@ -72,12 +72,12 @@ class Session implements Runnable {
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
                         "Successfully logged in!");
+                success = true;
             }
         }
 
-        isLoggedIn = true; // temporary hack to prevent server from spinning waiting for new login msg
-
         out.writeObject(res);
+        return success;
     }
 
     private void handleDuplicateLogin() {
@@ -92,11 +92,11 @@ class Session implements Runnable {
     private void handleLogout() {
         try {
             System.out.println("Logging out client at " + clientAddress);
+            boolean success = server.logout(user);
             out.writeObject(new Message(
                         Message.Type.LOGOUT, 
                         Message.Status.SUCCESS, 
                         "You have been logged out of the server."));
-            isLoggedIn = false;
             out.close();
             in.close();
             client.close();

@@ -1,5 +1,7 @@
 package server;
 
+import shared.Message;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
