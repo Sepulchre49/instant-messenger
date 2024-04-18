@@ -1,13 +1,14 @@
 package client;
 
-import server.ServerUser;
 import shared.Message;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Client implements Runnable {
+public class Client {
     private String host;
     private int port;
     private Socket socket;
@@ -23,7 +24,7 @@ public class Client implements Runnable {
     }
 
 
-    public void connectToServer() {
+    public void connectToServer() throws IOException {
         Scanner scanner = new Scanner(System.in); //to be removed after GUI implementation.
 
         try {
@@ -51,84 +52,43 @@ public class Client implements Runnable {
     }
 
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
-        boolean success = false;
-        Message login = new Message(Message.Type.LOGIN, Message.Status.REQUEST, "username: " + username + " password: " + password);
-        write.writeObject(login);
+        Message m = new Message(
+            Message.Type.LOGIN, 
+            Message.Status.REQUEST,
+            String.format("username: %s password: %s", username, password)
+        );
 
-        Message loginReceipt = (Message) read.readObject();
-        if (loginReceipt.getType() == Message.Type.LOGIN && loginReceipt.getStatus() == Message.Status.SUCCESS) {
-            success = true;
-            System.out.println("You've logged in!");
-        } else {
-            System.out.println("Wrong credentials. Try again.");
-        }
-
-        return success;
-
+        write.writeObject(m);
+        Message res = (Message) read.readObject();
+        System.out.println(res.getContent());
+        return res.getStatus().equals(Message.Status.SUCCESS);
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
-        boolean success = false;
-        Message logout = new Message(Message.Type.LOGOUT, Message.Status.REQUEST, "Logout Request");
-        write.writeObject(logout);
+        write.writeObject(new Message(
+            Message.Type.LOGOUT,
+            Message.Status.REQUEST,
+            "Logging out!"));
 
-        Message logoutReceipt = (Message) read.readObject();
-        if (logoutReceipt.getType() == Message.Type.LOGOUT && logoutReceipt.getStatus() == Message.Status.SUCCESS) {
-            success = true;
-            read.close();
-            write.close();
-            socket.close();
-            System.out.println("Logging out... See you again soon!");
-        }
-        return success;
+        Message res = (Message) read.readObject();
+        System.out.println(res.getContent());
+        return res.getStatus() == Message.Status.SUCCESS;
     }
 
     public void viewConversation(int conversationID) {
+
     }
 
-    public void sendMessage(String message) throws IOException {
-        Message txt = new Message(Message.Type.TEXT, Message.Status.REQUEST, message);
-        write.writeObject(txt);
+    public void sendMessage(Message message) throws IOException, ClassNotFoundException {
+        write.writeObject(message);
+        Message res = (Message) read.readObject();
+        System.out.println(res.getContent());
     }
 
-    public void receiveMessages() throws IOException, ClassNotFoundException {
-        Message message = (Message) read.readObject();
-        if (message != null) {
-            switch (message.getType()) {
-                case TEXT:
-                    if (message.getStatus() == Message.Status.SUCCESS) {
-                        System.out.println("Message from the server: " + message.getContent());
+    public void receiveMessage(Message message) {
 
-                    } else if (message.getStatus() == Message.Status.FAILURE) {
-                        System.out.println("The server failed to send a message.");
-                    }
-                    break;
-
-                default:
-                    System.out.println("Received an unknown type of message! Sorry!");
-                    break;
-            }
-        } else {
-            System.out.println("Received a null message.");
-        }
     }
 
-    @Override
-    public void run() { // Listens for messages on a separate thread. It's epic.
-        System.out.println("Thread has started!");
-        try {
-            while (true) {
-                receiveMessages();
-            }
-        } catch (IOException e) {
-            System.out.println("IOException in receiveMessage!");
-            e.printStackTrace();
-
-        } catch (ClassNotFoundException e) {
-            System.out.println("ClassNotFoundException in receiveMessage!");
-            e.printStackTrace();
-        }
-    }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         System.out.println("Hello from the client!");
@@ -144,19 +104,28 @@ public class Client implements Runnable {
         String pass = scanner.nextLine();
 
         if (client.login(user, pass)) {
-            String message;
+            System.out.println("Successfully logged in.");
 
-            Thread listener = new Thread(client); // Will now listen for messages.
-            listener.start();
-
-            System.out.println("You can now print messages! Type 'logout' to logout!");
-            while (!(message = scanner.nextLine()).equalsIgnoreCase("logout")) {
-                client.sendMessage(message);
-            }
-
-            client.logout();
-        } else {
-            System.out.println("Uh oh, something's gone terribly wrong with logging in/out!");
+            boolean quit = false;
+            do {
+                System.out.println("Enter a message, or type 'logout' to quit: ");
+                String in = scanner.nextLine();
+                if (in.equals("logout")) {
+                    System.out.println("Logging out...");
+                    
+                    if (client.logout()) {
+                        System.out.println("(Client) Successfully logged out.");
+                    } else {
+                        System.out.println("Error logging out.");
+                    }
+                    quit = true;
+                } else {
+                    client.sendMessage(new Message(
+                        Message.Type.TEXT, 
+                        Message.Status.REQUEST, 
+                        in));
+                }
+            } while (!quit);
         }
     }
 }
