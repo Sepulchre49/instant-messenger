@@ -98,16 +98,18 @@ public class Server {
         }
     }
 
-    public synchronized boolean logout(ServerUser user) {
-	boolean success = false;
+    public synchronized void logout(ServerUser user) {
+        if (user == null) {
+            System.out.println("Cannot log out null user.");
+            return;
+        }
+
 	if (activeUsers.containsKey(user.getUsername())) {
 	    user.logout();
 	    activeUsers.remove(user.getUsername());
-	    success = true;
 	} else {
 	    System.out.println("Failed to log out user " + user.getUsername() + ". Already signed out.");
 	}
-	return success;
     }
 
     public void forward(Message msg) {

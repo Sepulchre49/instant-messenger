@@ -61,7 +61,7 @@ public class Client {
         write.writeObject(m);
         Message res = (Message) read.readObject();
         System.out.println(res.getContent());
-        return res.getStatus().equals(Message.Status.SUCCESS);
+        return (res.getType().equals(Message.Type.LOGIN) && res.getStatus().equals(Message.Status.SUCCESS));
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
@@ -97,13 +97,20 @@ public class Client {
         Client client = new Client();
         client.connectToServer();
 
-        System.out.println("Username: ");
-        String user = scanner.nextLine();
+        int attempts = 3;
+        boolean success = false;
+        while (!success && attempts > 0) {
+            System.out.println("Username: ");
+            String user = scanner.nextLine();
 
-        System.out.println("Password: ");
-        String pass = scanner.nextLine();
+            System.out.println("Password: ");
+            String pass = scanner.nextLine();
 
-        if (client.login(user, pass)) {
+            success = client.login(user, pass);
+            --attempts;
+        }
+
+        if (success) {
             System.out.println("Successfully logged in.");
 
             boolean quit = false;
