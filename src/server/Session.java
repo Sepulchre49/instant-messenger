@@ -108,14 +108,12 @@ class Session implements Runnable {
         }
     }
 
-    private void handleText(String text) {
-        try {
-            System.out.println("Received text message from " + clientAddress);
-            out.writeObject(new Message(Message.Type.TEXT, Message.Status.SUCCESS, text.toUpperCase()));
-        } catch (IOException e) {
-            System.out.println("Error responding to text message from " + clientAddress);
-            e.printStackTrace();
-        }
+    private void handleText(Message m) throws IOException {
+        server.forward(m);
+        out.writeObject(new Message(
+                    Message.Type.TEXT,
+                    Message.Status.SUCCESS,
+                    "Message received."));
     }
 
     private void doMessageLoop() throws IOException {
@@ -126,7 +124,7 @@ class Session implements Runnable {
                 Message m = (Message) in.readObject();
                 switch (m.getType()) {
                     case TEXT:
-                        handleText(m.getContent());
+                        handleText(m);
                         break;
                     case LOGOUT:
                         handleLogout();

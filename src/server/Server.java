@@ -93,6 +93,10 @@ public class Server {
 	return success;
     }
 
+    public void forward(Message m) {
+        System.out.println("Forwarded message received by server."); 
+    }
+
     public static void main(String[] args) throws IOException {
 	Server s = new Server(DEFAULT_PORT);
     }
