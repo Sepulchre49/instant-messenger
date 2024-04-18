@@ -91,22 +91,21 @@ class Session implements Runnable {
 
     private void handleLogout() {
         try {
-            System.out.println("Received logout request from " + clientAddress);
-            logout();
+            System.out.println("Logging out client at " + clientAddress);
+            out.writeObject(new Message(
+                        Message.Type.LOGOUT, 
+                        Message.Status.SUCCESS, 
+                        "You have been logged out of the server."));
+            isLoggedIn = false;
+            out.close();
+            in.close();
+            client.close();
+
             System.out.println("Successfully logged out client " + clientAddress);
         } catch (IOException e) {
             System.out.println("Error trying to close connection with " + clientAddress);
             e.printStackTrace();
         }
-    }
-
-    private void logout() throws IOException {
-        out.writeObject(
-                new Message(Message.Type.LOGOUT, Message.Status.SUCCESS, "You have been logged out of the server."));
-        isLoggedIn = false;
-        out.close();
-        in.close();
-        client.close();
     }
 
     private void handleText(String text) {
@@ -140,7 +139,7 @@ class Session implements Runnable {
             } catch (IOException e) {
                 System.out.println("Error while reading messages from " + clientAddress);
                 System.out.println("Terminating connection with " + clientAddress);
-                logout();
+                handleLogout();
                 quit = true;
             } catch (ClassNotFoundException e) {
                 System.out.println("Could not find serialized class for message from " + clientAddress);
