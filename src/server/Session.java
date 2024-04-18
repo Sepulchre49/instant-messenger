@@ -12,7 +12,6 @@ import shared.Message;
 class Session implements Runnable {
     private Socket client;
     private String clientAddress;
-    private boolean isLoggedIn;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private Server server;
@@ -22,7 +21,6 @@ class Session implements Runnable {
         this.server = server;
         client = s;
         clientAddress = client.getInetAddress().getHostAddress();
-        isLoggedIn = false;
         System.out.println("Connection created with " + clientAddress);
         try {
             in = new ObjectInputStream(client.getInputStream());
@@ -34,12 +32,13 @@ class Session implements Runnable {
     }
 
     private void waitForLogin() {
+        boolean isLoggedIn = false;
         do {
             try {
                 System.out.println("Received new connection request from " + clientAddress);
                 Message m = (Message) in.readObject();
                 if (m.getType() == Message.Type.LOGIN)
-                    handleLogin(m);
+                    isLoggedIn = handleLogin(m);
             } catch (IOException e) {
                 System.out.println("Error reading object from the input stream while waiting for login message from "
                         + clientAddress);
@@ -51,7 +50,8 @@ class Session implements Runnable {
         } while (!isLoggedIn);
     }
 
-    private void handleLogin(Message m) throws IOException {
+    private boolean handleLogin(Message m) throws IOException {
+        boolean success = false;
         String regex = "username:\\s*(\\w{3,})\\s+password:\\s*(\\w{6,})";
         Matcher matcher = Pattern.compile(regex).matcher(m.getContent());
 
@@ -72,12 +72,12 @@ class Session implements Runnable {
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
                         "Successfully logged in!");
+                success = true;
             }
         }
 
-        isLoggedIn = true; // temporary hack to prevent server from spinning waiting for new login msg
-
         out.writeObject(res);
+        return success;
     }
 
     private void handleDuplicateLogin() {
@@ -91,8 +91,16 @@ class Session implements Runnable {
 
     private void handleLogout() {
         try {
-            System.out.println("Received logout request from " + clientAddress);
-            logout();
+            System.out.println("Logging out client at " + clientAddress);
+            boolean success = server.logout(user);
+            out.writeObject(new Message(
+                        Message.Type.LOGOUT, 
+                        Message.Status.SUCCESS, 
+                        "You have been logged out of the server."));
+            out.close();
+            in.close();
+            client.close();
+
             System.out.println("Successfully logged out client " + clientAddress);
         } catch (IOException e) {
             System.out.println("Error trying to close connection with " + clientAddress);
@@ -100,23 +108,12 @@ class Session implements Runnable {
         }
     }
 
-    private void logout() throws IOException {
-        out.writeObject(
-                new Message(Message.Type.LOGOUT, Message.Status.SUCCESS, "You have been logged out of the server."));
-        isLoggedIn = false;
-        out.close();
-        in.close();
-        client.close();
-    }
-
-    private void handleText(String text) {
-        try {
-            System.out.println("Received text message from " + clientAddress);
-            out.writeObject(new Message(Message.Type.TEXT, Message.Status.SUCCESS, text.toUpperCase()));
-        } catch (IOException e) {
-            System.out.println("Error responding to text message from " + clientAddress);
-            e.printStackTrace();
-        }
+    private void handleText(Message m) throws IOException {
+        server.forward(m);
+        out.writeObject(new Message(
+                    Message.Type.TEXT,
+                    Message.Status.SUCCESS,
+                    "Message received."));
     }
 
     private void doMessageLoop() throws IOException {
@@ -127,7 +124,7 @@ class Session implements Runnable {
                 Message m = (Message) in.readObject();
                 switch (m.getType()) {
                     case TEXT:
-                        handleText(m.getContent());
+                        handleText(m);
                         break;
                     case LOGOUT:
                         handleLogout();
@@ -140,7 +137,7 @@ class Session implements Runnable {
             } catch (IOException e) {
                 System.out.println("Error while reading messages from " + clientAddress);
                 System.out.println("Terminating connection with " + clientAddress);
-                logout();
+                handleLogout();
                 quit = true;
             } catch (ClassNotFoundException e) {
                 System.out.println("Could not find serialized class for message from " + clientAddress);
