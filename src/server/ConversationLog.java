@@ -3,6 +3,9 @@ package server;
 import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import shared.Message;
 
@@ -46,5 +49,28 @@ public class ConversationLog {
     public void deleteMessage(Message message) {
         this.messages.remove(message);
     }
-}
 
+    public void writeLogToFile(String filename) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true));
+            
+            writer.write("Timestamp: " + this.getTimeStamp().toString());
+            writer.newLine();
+            writer.write("Sender ID: " + this.getSenderID());
+            writer.newLine();
+            writer.write("Recipient ID: " + this.getRecipientID());
+            writer.newLine();
+            writer.write("Message ID: " + this.getMessageID());
+            writer.newLine();
+            
+            for (Message message : this.messages) {
+                writer.write("Message: " + message.toString());
+                writer.newLine();
+            }
+            
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
