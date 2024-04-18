@@ -14,7 +14,8 @@ public class Message implements Serializable {
         SUCCESS,
         FAILURE,
         ERROR,
-        INVALID_ARGUMENT
+        INVALID_ARGUMENT,
+        RECEIVED
     }
 
     private Type type;

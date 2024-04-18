@@ -153,7 +153,7 @@ class Session implements Runnable {
         try {
             out.writeObject(new Message(
                     Message.Type.TEXT,
-                    Message.Status.SUCCESS,
+                    Message.Status.RECEIVED,
                     "Message received."));
         } catch (IOException e) {
             System.err.println("Error sending message received acknowledgement to " + clientAddress);
