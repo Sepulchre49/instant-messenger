@@ -93,8 +93,14 @@ public class Server {
 	return success;
     }
 
-    public void forward(Message m) {
+    public void forward(Message msg) {
         System.out.println("Forwarded message received by server."); 
+        // TODO: Read the message recepients, write to each recipients message queue
+        log(msg);
+    }
+
+    private void log(Message msg) {
+        // TODO: Implement logging
     }
 
     public static void main(String[] args) throws IOException {
@@ -104,7 +110,8 @@ public class Server {
     private static class MessageQueueWriter implements Runnable {
 	@Override
 	public void run() {
-	    // Repeatedly check each client's message queue;
+	    // TODO: Repeatedly check each active user's message queue; 
+            // write one message per users queue per iteration
 	    System.out.println("Hello from the MessageQueueWriter!");
 	}
     }
