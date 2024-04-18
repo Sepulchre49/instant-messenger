@@ -15,6 +15,12 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+class ServerInitializationException extends Exception {
+    public ServerInitializationException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+}
+
 public class Server {
     private static final int DEFAULT_PORT = 3000;
     private static final int MAX_THREADS = 20;
@@ -23,16 +29,20 @@ public class Server {
     private Map<String, ServerUser> users;
     private Map<String, ServerUser> activeUsers;
 
-    public Server(int port) throws IOException {
-	socket = new ServerSocket(port);
+    public Server(int port) throws ServerInitializationException {
+        try {
+	    socket = new ServerSocket(port);
+        } catch (IOException e) {
+            throw new ServerInitializationException("Error creating the ServerSocket.", e);
+        }
+
 	users = new HashMap<>();
 	activeUsers = new HashMap<>();
         
         try {
             init_users();
         } catch (FileNotFoundException e) {
-            System.out.println("Could not find users.txt file");
-            e.printStackTrace();
+            throw new ServerInitializationException("Could not find users.txt file. No users could be loaded.", e);
         }
 
 	ExecutorService tp = Executors.newFixedThreadPool(MAX_THREADS);
@@ -40,8 +50,13 @@ public class Server {
 
 	System.out.println("Now listening on port " + port + "...");
 	while (true) {
-	    Socket clientSocket = socket.accept();
-	    tp.execute(new Session(clientSocket, this));
+            try {
+	        Socket clientSocket = socket.accept();
+	        tp.execute(new Session(clientSocket, this));
+            } catch (IOException e) {
+                System.err.println("Error accepting a new connection.");
+                e.printStackTrace();
+            }
 	}
     }
 
@@ -58,6 +73,8 @@ public class Server {
                 String password = matcher.group(2);
 
                 users.put(username, new ServerUser(username, password));
+            } else {
+                System.out.println("Rejecting username/password " + line + "...");
             }
         }
 
@@ -72,7 +89,7 @@ public class Server {
 		System.out.println("Successfully logged in user " + username);
                 return user;
 	    } else {
-		System.out.println("Authentication error for user " + username);
+		System.out.println("Authentication failure for user " + username);
                 return null;
 	    }
 	} else {
@@ -103,8 +120,13 @@ public class Server {
         // TODO: Implement logging
     }
 
-    public static void main(String[] args) throws IOException {
-	Server s = new Server(DEFAULT_PORT);
+    public static void main(String[] args) {
+        try {
+	    Server s = new Server(DEFAULT_PORT);
+        } catch (ServerInitializationException e) {
+            e.printStackTrace(); 
+            System.exit(1);
+        }
     }
 
     private static class MessageQueueWriter implements Runnable {
