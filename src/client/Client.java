@@ -54,6 +54,7 @@ public class Client {
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
         Message m = new Message(
                     0,
+                    null,
                     Message.Type.LOGIN, 
                     Message.Status.REQUEST,
                     String.format("username: %s password: %s", username, password));
@@ -67,6 +68,7 @@ public class Client {
     public boolean logout() throws IOException, ClassNotFoundException {
         write.writeObject(new Message( 
                     user.getUserId(), 
+                    null,
                     Message.Type.LOGOUT, 
                     Message.Status.REQUEST, 
                     "Logging out!"));
@@ -130,6 +132,7 @@ public class Client {
                 } else {
                     client.sendMessage(new Message(
                                 0, 
+                                null,
                                 Message.Type.TEXT, 
                                 Message.Status.REQUEST, 
                                 in));

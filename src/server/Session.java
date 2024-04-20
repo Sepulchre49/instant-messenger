@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,6 +71,7 @@ class Session implements Runnable {
 
         Message res = new Message(
                     0,
+                    null,
                     Message.Type.LOGIN, 
                     Message.Status.FAILURE, 
                     "Failed to log in!");
@@ -82,7 +84,8 @@ class Session implements Runnable {
 
             if (user != null) {
                 res = new Message(
-                        user.getUserId(),
+                        0, // 0 means server is sender
+                        null,
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
                         "Successfully logged in!");
@@ -105,6 +108,7 @@ class Session implements Runnable {
         try {
             out.writeObject(new Message(
                         0,
+                        null,
                         Message.Type.LOGIN, 
                         Message.Status.FAILURE, 
                         "Nu uh uh"));
@@ -121,7 +125,8 @@ class Session implements Runnable {
             System.out.println("Logging out client at " + clientAddress);
             server.logout(user);
             out.writeObject(new Message(
-                        user.getUserId(),
+                        0,
+                        new ArrayList<>(user.getUserId()),
                         Message.Type.LOGOUT, 
                         Message.Status.SUCCESS, 
                         "You have been logged out of the server."));
@@ -136,7 +141,8 @@ class Session implements Runnable {
         // TODO: Make an special connection termination message
         try {
             out.writeObject(new Message(
-                        user.getUserId(),
+                        0,
+                        new ArrayList<>(user.getUserId()),
                         Message.Type.LOGOUT,
                         Message.Status.SUCCESS,
                         "Terminating connection"));
@@ -157,7 +163,8 @@ class Session implements Runnable {
         server.forward(m);
         try {
             out.writeObject(new Message(
-                    user.getUserId(),
+                    0,
+                    new ArrayList<>(user.getUserId()),
                     Message.Type.TEXT,
                     Message.Status.RECEIVED,
                     "Message received."));
