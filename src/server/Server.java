@@ -22,6 +22,7 @@ class ServerInitializationException extends Exception {
 }
 
 public class Server {
+    public static final int SERVER_USER_ID = 0;
     private static final int DEFAULT_PORT = 3000;
     private static final int MAX_THREADS = 20;
 

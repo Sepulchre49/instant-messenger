@@ -70,7 +70,7 @@ class Session implements Runnable {
         Matcher matcher = Pattern.compile(regex).matcher(m.getContent());
 
         Message res = new Message(
-                    0,
+                    Server.SERVER_USER_ID,
                     null,
                     Message.Type.LOGIN, 
                     Message.Status.FAILURE, 
@@ -84,7 +84,7 @@ class Session implements Runnable {
 
             if (user != null) {
                 res = new Message(
-                        0, // 0 means server is sender
+                        Server.SERVER_USER_ID,
                         null,
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
@@ -107,7 +107,7 @@ class Session implements Runnable {
         System.out.println("Received duplicate login request from " + clientAddress);
         try {
             out.writeObject(new Message(
-                        0,
+                        Server.SERVER_USER_ID,
                         null,
                         Message.Type.LOGIN, 
                         Message.Status.FAILURE, 
@@ -125,7 +125,7 @@ class Session implements Runnable {
             System.out.println("Logging out client at " + clientAddress);
             server.logout(user);
             out.writeObject(new Message(
-                        0,
+                        Server.SERVER_USER_ID,
                         new ArrayList<>(user.getUserId()),
                         Message.Type.LOGOUT, 
                         Message.Status.SUCCESS, 
@@ -141,7 +141,7 @@ class Session implements Runnable {
         // TODO: Make an special connection termination message
         try {
             out.writeObject(new Message(
-                        0,
+                        Server.SERVER_USER_ID,
                         new ArrayList<>(user.getUserId()),
                         Message.Type.LOGOUT,
                         Message.Status.SUCCESS,
@@ -163,7 +163,7 @@ class Session implements Runnable {
         server.forward(m);
         try {
             out.writeObject(new Message(
-                    0,
+                    Server.SERVER_USER_ID,
                     new ArrayList<>(user.getUserId()),
                     Message.Type.TEXT,
                     Message.Status.RECEIVED,

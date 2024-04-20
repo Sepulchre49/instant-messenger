@@ -15,6 +15,10 @@ public class ServerUser {
     private Socket connection;
 
     public ServerUser(String username, String password) {
+        // Make sure that the user id will never ever be equal to the id reserved by the server
+        if (count == Server.SERVER_USER_ID)
+            count++;
+
         this.userId = count++;
 	this.username = username;
 	this.password = password;
