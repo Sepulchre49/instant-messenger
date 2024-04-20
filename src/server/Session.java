@@ -69,6 +69,7 @@ class Session implements Runnable {
         Matcher matcher = Pattern.compile(regex).matcher(m.getContent());
 
         Message res = new Message(
+                    0,
                     Message.Type.LOGIN, 
                     Message.Status.FAILURE, 
                     "Failed to log in!");
@@ -81,6 +82,7 @@ class Session implements Runnable {
 
             if (user != null) {
                 res = new Message(
+                        user.getUserId(),
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
                         "Successfully logged in!");
@@ -102,6 +104,7 @@ class Session implements Runnable {
         System.out.println("Received duplicate login request from " + clientAddress);
         try {
             out.writeObject(new Message(
+                        0,
                         Message.Type.LOGIN, 
                         Message.Status.FAILURE, 
                         "Nu uh uh"));
@@ -118,6 +121,7 @@ class Session implements Runnable {
             System.out.println("Logging out client at " + clientAddress);
             server.logout(user);
             out.writeObject(new Message(
+                        user.getUserId(),
                         Message.Type.LOGOUT, 
                         Message.Status.SUCCESS, 
                         "You have been logged out of the server."));
@@ -132,6 +136,7 @@ class Session implements Runnable {
         // TODO: Make an special connection termination message
         try {
             out.writeObject(new Message(
+                        user.getUserId(),
                         Message.Type.LOGOUT,
                         Message.Status.SUCCESS,
                         "Terminating connection"));
@@ -152,6 +157,7 @@ class Session implements Runnable {
         server.forward(m);
         try {
             out.writeObject(new Message(
+                    user.getUserId(),
                     Message.Type.TEXT,
                     Message.Status.RECEIVED,
                     "Message received."));
@@ -196,7 +202,6 @@ class Session implements Runnable {
         } catch (LoginException | MessageLoopException e) {
             e.printStackTrace();
         } finally {
-            handleLogout();
             terminate();
         }
     }

@@ -8,10 +8,9 @@ public class ClientUser {
     private int userId;
     private String username;
     private Set<Conversation> convrsations;
-    
-    public ClientUser()
-    {
-    	
+
+    public ClientUser() {
+
     }
     
     public ClientUser(int userId, String username){ 

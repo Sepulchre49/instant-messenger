@@ -53,10 +53,10 @@ public class Client {
 
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
         Message m = new Message(
-            Message.Type.LOGIN, 
-            Message.Status.REQUEST,
-            String.format("username: %s password: %s", username, password)
-        );
+                    0,
+                    Message.Type.LOGIN, 
+                    Message.Status.REQUEST,
+                    String.format("username: %s password: %s", username, password));
 
         write.writeObject(m);
         Message res = (Message) read.readObject();
@@ -65,10 +65,11 @@ public class Client {
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
-        write.writeObject(new Message(
-            Message.Type.LOGOUT,
-            Message.Status.REQUEST,
-            "Logging out!"));
+        write.writeObject(new Message( 
+                    user.getUserId(), 
+                    Message.Type.LOGOUT, 
+                    Message.Status.REQUEST, 
+                    "Logging out!"));
 
         Message res = (Message) read.readObject();
         System.out.println(res.getContent());
@@ -128,9 +129,10 @@ public class Client {
                     quit = true;
                 } else {
                     client.sendMessage(new Message(
-                        Message.Type.TEXT, 
-                        Message.Status.REQUEST, 
-                        in));
+                                0, 
+                                Message.Type.TEXT, 
+                                Message.Status.REQUEST, 
+                                in));
                 }
             } while (!quit);
         }
