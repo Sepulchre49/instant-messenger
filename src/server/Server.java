@@ -1,19 +1,21 @@
 package server;
 
-import shared.Message;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import shared.Message;
 
 class ServerInitializationException extends Exception {
     public ServerInitializationException(String msg, Throwable cause) {
@@ -27,8 +29,9 @@ public class Server {
     private static final int MAX_THREADS = 20;
 
     private ServerSocket socket;
-    private Map<String, ServerUser> users;
-    private Map<String, ServerUser> activeUsers;
+    private Map<String, Integer> usernames;
+    private Map<Integer, ServerUser> users;
+    private Set<Integer> activeUsers;
 
     public Server(int port) throws ServerInitializationException {
         try {
@@ -37,8 +40,9 @@ public class Server {
             throw new ServerInitializationException("Error creating the ServerSocket.", e);
         }
 
+        usernames = new HashMap<>();
 	users = new HashMap<>();
-	activeUsers = new HashMap<>();
+	activeUsers = new HashSet<>();
         
         try {
             init_users();
@@ -73,7 +77,12 @@ public class Server {
                 String username = matcher.group(1);
                 String password = matcher.group(2);
 
-                users.put(username, new ServerUser(username, password));
+                ServerUser user = new ServerUser(username, password);
+
+                int userId = user.getUserId();
+
+                usernames.put(username, userId);
+                users.put(userId, user);
             } else {
                 System.out.println("Rejecting username/password " + line + "...");
             }
@@ -83,10 +92,11 @@ public class Server {
     }
 
     public synchronized ServerUser login(String username, String password) {
-	if (users.containsKey(username)) {
-	    ServerUser user = users.get(username);
+	if (usernames.containsKey(username)) {
+            int id = usernames.get(username);
+	    ServerUser user = users.get(id);
 	    if (user.authenticate(password)) {
-		activeUsers.put(username, user);
+		activeUsers.add(user.getUserId());
 		System.out.println("Successfully logged in user " + username);
                 return user;
 	    } else {
@@ -105,9 +115,9 @@ public class Server {
             return;
         }
 
-	if (activeUsers.containsKey(user.getUsername())) {
+	if (activeUsers.contains(user.getUserId())) {
 	    user.logout();
-	    activeUsers.remove(user.getUsername());
+	    activeUsers.remove(user.getUserId());
 	} else {
 	    System.out.println("Failed to log out user " + user.getUsername() + ". Already signed out.");
 	}
