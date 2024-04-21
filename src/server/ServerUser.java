@@ -1,5 +1,6 @@
 package server;
 
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -13,6 +14,7 @@ public class ServerUser {
     private boolean isLoggedIn;
     private Queue<Message> messageQueue;
     private Socket connection;
+    private ObjectOutputStream out;
 
     public ServerUser(String username, String password) {
         // Make sure that the user id will never ever be equal to the id reserved by the server
@@ -24,6 +26,14 @@ public class ServerUser {
 	this.password = password;
 	this.isLoggedIn = false;
         this.messageQueue = new ConcurrentLinkedQueue<>();
+    }
+    
+    public void setOutputStream(ObjectOutputStream out) {
+        this.out = out;
+    }
+
+    public ObjectOutputStream getOutputStream() {
+        return out;
     }
 
     public int getUserId() {

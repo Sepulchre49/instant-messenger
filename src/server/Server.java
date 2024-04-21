@@ -125,7 +125,12 @@ public class Server {
 
     public void forward(Message msg) {
         System.out.println("Forwarded message received by server."); 
-        // TODO: Read the message recepients, write to each recipients message queue
+
+        for (int id : msg.getReceiverIds()) {
+            ServerUser recipient = users.get(id);
+            recipient.receive(msg);
+        }
+
         log(msg);
     }
 

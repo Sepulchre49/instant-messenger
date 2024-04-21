@@ -22,7 +22,6 @@ class MessageLoopException extends Exception {
     }
 }
 
-
 class Session implements Runnable {
     private Socket client;
     private String clientAddress;
@@ -50,7 +49,10 @@ class Session implements Runnable {
         boolean success = false;
         while (!success && attempts > 0) {
             try {
-                Message m = (Message) in.readObject();
+                Message m;
+                synchronized (in) {
+                    m = (Message) in.readObject();
+                }
                 if (m.getType() == Message.Type.LOGIN)
                     success = handleLogin(m);
                 if (!success)
@@ -94,7 +96,9 @@ class Session implements Runnable {
         }
 
         try {
-            out.writeObject(res);
+            synchronized (out) {
+                out.writeObject(res);
+            }
         } catch (IOException e) {
             System.err.println("Error writing login success message to " + clientAddress);
             e.printStackTrace();
@@ -106,12 +110,14 @@ class Session implements Runnable {
     private void handleDuplicateLogin() {
         System.out.println("Received duplicate login request from " + clientAddress);
         try {
-            out.writeObject(new Message(
-                        Server.SERVER_USER_ID,
-                        null,
-                        Message.Type.LOGIN, 
-                        Message.Status.FAILURE, 
-                        "Nu uh uh"));
+            synchronized (out) {
+                out.writeObject(new Message(
+                            Server.SERVER_USER_ID,
+                            null,
+                            Message.Type.LOGIN, 
+                            Message.Status.FAILURE, 
+                            "Nu uh uh"));
+            }
         } catch (IOException e) {
             System.err.println("Error trying to write login failure message to " + client);
             e.printStackTrace();
@@ -124,12 +130,14 @@ class Session implements Runnable {
         try {
             System.out.println("Logging out client at " + clientAddress);
             server.logout(user);
-            out.writeObject(new Message(
-                        Server.SERVER_USER_ID,
-                        new ArrayList<>(user.getUserId()),
-                        Message.Type.LOGOUT, 
-                        Message.Status.SUCCESS, 
-                        "You have been logged out of the server."));
+            synchronized (out) {
+                out.writeObject(new Message(
+                            Server.SERVER_USER_ID,
+                            new ArrayList<>(user.getUserId()),
+                            Message.Type.LOGOUT, 
+                            Message.Status.SUCCESS, 
+                            "You have been logged out of the server."));
+            }
             System.out.println("Successfully logged out client " + clientAddress);
         } catch (IOException e) {
             System.err.println("Error writing logout message to " + clientAddress);
@@ -140,12 +148,14 @@ class Session implements Runnable {
     private void terminate() {
         // TODO: Make an special connection termination message
         try {
-            out.writeObject(new Message(
-                        Server.SERVER_USER_ID,
-                        new ArrayList<>(user.getUserId()),
-                        Message.Type.LOGOUT,
-                        Message.Status.SUCCESS,
-                        "Terminating connection"));
+            synchronized(out) {
+                out.writeObject(new Message(
+                            Server.SERVER_USER_ID,
+                            new ArrayList<>(user.getUserId()),
+                            Message.Type.LOGOUT,
+                            Message.Status.SUCCESS,
+                            "Terminating connection"));
+            }
         } catch (IOException e) {
             System.out.println("Error sending termination message. Proceeding with termination.");
             e.printStackTrace();
@@ -162,12 +172,14 @@ class Session implements Runnable {
     private void handleText(Message m) {
         server.forward(m);
         try {
-            out.writeObject(new Message(
-                    Server.SERVER_USER_ID,
-                    new ArrayList<>(user.getUserId()),
-                    Message.Type.TEXT,
-                    Message.Status.RECEIVED,
-                    "Message received."));
+            synchronized (out) {
+                out.writeObject(new Message(
+                        Server.SERVER_USER_ID,
+                        new ArrayList<>(user.getUserId()),
+                        Message.Type.TEXT,
+                        Message.Status.RECEIVED,
+                        "Message received."));
+            }
         } catch (IOException e) {
             System.err.println("Error sending message received acknowledgement to " + clientAddress);
             e.printStackTrace();
@@ -179,7 +191,10 @@ class Session implements Runnable {
         do {
             // Read a message
             try {
-                Message m = (Message) in.readObject();
+                Message m;
+                synchronized (in) {
+                    m = (Message) in.readObject();
+                }
                 switch (m.getType()) {
                     case TEXT:
                         handleText(m);
