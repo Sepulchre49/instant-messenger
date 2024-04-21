@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
@@ -53,22 +54,25 @@ public class Client {
 
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
         Message m = new Message(
-            Message.Type.LOGIN, 
-            Message.Status.REQUEST,
-            String.format("username: %s password: %s", username, password)
-        );
+                    0,
+                    null,
+                    Message.Type.LOGIN, 
+                    Message.Status.REQUEST,
+                    String.format("username: %s password: %s", username, password));
 
         write.writeObject(m);
         Message res = (Message) read.readObject();
         System.out.println(res.getContent());
-        return res.getStatus().equals(Message.Status.SUCCESS);
+        return (res.getType().equals(Message.Type.LOGIN) && res.getStatus().equals(Message.Status.SUCCESS));
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
-        write.writeObject(new Message(
-            Message.Type.LOGOUT,
-            Message.Status.REQUEST,
-            "Logging out!"));
+        write.writeObject(new Message( 
+                    user.getUserId(), 
+                    null,
+                    Message.Type.LOGOUT, 
+                    Message.Status.REQUEST, 
+                    "Logging out!"));
 
         Message res = (Message) read.readObject();
         System.out.println(res.getContent());
@@ -97,13 +101,20 @@ public class Client {
         Client client = new Client();
         client.connectToServer();
 
-        System.out.println("Username: ");
-        String user = scanner.nextLine();
+        int attempts = 3;
+        boolean success = false;
+        while (!success && attempts > 0) {
+            System.out.println("Username: ");
+            String user = scanner.nextLine();
 
-        System.out.println("Password: ");
-        String pass = scanner.nextLine();
+            System.out.println("Password: ");
+            String pass = scanner.nextLine();
 
-        if (client.login(user, pass)) {
+            success = client.login(user, pass);
+            --attempts;
+        }
+
+        if (success) {
             System.out.println("Successfully logged in.");
 
             boolean quit = false;
@@ -120,10 +131,13 @@ public class Client {
                     }
                     quit = true;
                 } else {
+                    ArrayList<Integer> recipients = new ArrayList<>() {{add(5);}};
                     client.sendMessage(new Message(
-                        Message.Type.TEXT, 
-                        Message.Status.REQUEST, 
-                        in));
+                                0,
+                                new ArrayList<>() {{add(5);}},
+                                Message.Type.TEXT,
+                                Message.Status.REQUEST, 
+                                in));
                 }
             } while (!quit);
         }

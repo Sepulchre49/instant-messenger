@@ -1,6 +1,10 @@
 package shared;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Message implements Serializable {
     public enum Type {
@@ -14,17 +18,42 @@ public class Message implements Serializable {
         SUCCESS,
         FAILURE,
         ERROR,
-        INVALID_ARGUMENT
+        INVALID_ARGUMENT,
+        RECEIVED
     }
 
+    private int senderId;
+    private Set<Integer> receiverIds;
+    private Date timestamp;
     private Type type;
     private Status status;
     private String content;
 
-    public Message(Type t, Status s, String msg) {
+    public Message(int sender, Collection<Integer> recipients, Type t, Status s, String msg) {
+        this.senderId = sender;
+        this.receiverIds = new HashSet<>();
         this.type = t;
         this.status = s;
         this.content = msg;
+        this.timestamp = new Date();
+
+        if (recipients != null) {
+            for (int id : recipients) {
+                receiverIds.add(id);
+            }
+        }
+    }
+
+    public int getSenderId() {
+        return senderId;
+    }
+
+    public Set<Integer> getReceiverIds() {
+        return receiverIds;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
     }
 
     public Type getType() {
