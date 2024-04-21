@@ -7,7 +7,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Queue;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Client {
     private String host;
@@ -42,8 +44,14 @@ public class Client {
             }
 
             this.socket = new Socket(host, port);
-            this.write = new ObjectOutputStream(socket.getOutputStream());
-            this.read = new ObjectInputStream(socket.getInputStream());
+
+            InQueue in = new InQueue(socket);
+            Thread inThread = new Thread(in);
+            inThread.start();
+
+            OutQueue out = new OutQueue(socket);
+            Thread outThread = new Thread(out);
+            outThread.start();
 
         } catch (IOException e) {
             System.err.println("Error in I/O operations: " + e.getMessage());
@@ -54,29 +62,30 @@ public class Client {
 
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
         Message m = new Message(
-                    0,
-                    null,
-                    Message.Type.LOGIN, 
-                    Message.Status.REQUEST,
-                    String.format("username: %s password: %s", username, password));
+                0,
+                null,
+                Message.Type.LOGIN,
+                Message.Status.REQUEST,
+                String.format("username: %s password: %s", username, password));
 
-        write.writeObject(m);
-        Message res = (Message) read.readObject();
-        System.out.println(res.getContent());
-        return (res.getType().equals(Message.Type.LOGIN) && res.getStatus().equals(Message.Status.SUCCESS));
+        OutQueue.out.add(m);
+        InQueue.in.add((Message) read.readObject());
+//        return (res.getType().equals(Message.Type.LOGIN) && res.getStatus().equals(Message.Status.SUCCESS));
+        return true; // TO-DO: Need to implement callback methods. Look into Future<Boolean>?
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
-        write.writeObject(new Message( 
-                    user.getUserId(), 
-                    null,
-                    Message.Type.LOGOUT, 
-                    Message.Status.REQUEST, 
-                    "Logging out!"));
+        Message m = new Message(
+                user.getUserId(),
+                null,
+                Message.Type.LOGOUT,
+                Message.Status.REQUEST,
+                "Logging out!");
 
-        Message res = (Message) read.readObject();
-        System.out.println(res.getContent());
-        return res.getStatus() == Message.Status.SUCCESS;
+        OutQueue.out.add(m);
+        InQueue.in.add((Message) read.readObject());
+//        return res.getStatus() == Message.Status.SUCCESS;
+        return true; // TO-DO: Need to implement callback methods. Look into Future<Boolean>?
     }
 
     public void viewConversation(int conversationID) {
@@ -84,16 +93,95 @@ public class Client {
     }
 
     public void sendMessage(Message message) throws IOException, ClassNotFoundException {
-        write.writeObject(message);
-        Message res = (Message) read.readObject();
-        System.out.println(res.getContent());
+        OutQueue.out.add(message);
+        InQueue.in.add((Message) read.readObject());
+//        System.out.println(res.getContent());
     }
 
     public void receiveMessage(Message message) {
 
     }
 
+    private static class InQueue implements Runnable {
+        public static Queue<Message> in = new ConcurrentLinkedQueue<>();
+        private final ObjectInputStream read;
+        private volatile boolean quit = false;
 
+        public InQueue(Socket socket) throws IOException {
+            this.read = new ObjectInputStream(socket.getInputStream());
+        }
+
+        @Override
+        public void run() {
+            System.out.println("The inbound thread has started.");
+            while (!quit) {
+                try {
+                    Message message = (Message) read.readObject();
+                    System.out.println("Received message: " + message.getContent());
+                } catch (IOException | ClassNotFoundException e) {
+                    if (!quit) {
+                        System.out.println("Error in InQueue: " + e.getMessage());
+                        quit = true;
+                    }
+                }
+            }
+        }
+
+        public void quit() {
+            quit = true;
+            Thread.currentThread().interrupt();
+            try {
+                read.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static class OutQueue implements Runnable {
+        public static Queue<Message> out = new ConcurrentLinkedQueue<>();
+        private final ObjectOutputStream write;
+        private volatile boolean quit = false;
+
+        public OutQueue(Socket socket) throws IOException {
+            this.write = new ObjectOutputStream(socket.getOutputStream());
+        }
+
+        public void run() {
+            System.out.println("The outbound thread has started.");
+            while (!quit) {
+                try {
+                    Message message = out.poll();
+                    if (message != null) {
+                        write.writeObject(message);
+                        write.flush();
+                        System.out.println("Sent message: " + message.getContent());
+                    } else {
+                        try {
+                            Thread.sleep(100); // Need to snooze for a bit, just in case...
+                        } catch (InterruptedException e) {
+                            quit = true;
+                        }
+                    }
+                } catch (IOException e) {
+                    if (!quit) {
+                        System.out.println("Error in OutQueue: " + e.getMessage());
+                        quit = true;
+                    }
+                }
+            }
+        }
+
+        public void quit() {
+            quit = true;
+            Thread.currentThread().interrupt();
+            try {
+                write.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         System.out.println("Hello from the client!");
         Scanner scanner = new Scanner(System.in);
@@ -123,7 +211,7 @@ public class Client {
                 String in = scanner.nextLine();
                 if (in.equals("logout")) {
                     System.out.println("Logging out...");
-                    
+
                     if (client.logout()) {
                         System.out.println("(Client) Successfully logged out.");
                     } else {
@@ -131,13 +219,17 @@ public class Client {
                     }
                     quit = true;
                 } else {
-                    ArrayList<Integer> recipients = new ArrayList<>() {{add(5);}};
+                    ArrayList<Integer> recipients = new ArrayList<>() {{
+                        add(5);
+                    }};
                     client.sendMessage(new Message(
-                                0,
-                                new ArrayList<>() {{add(5);}},
-                                Message.Type.TEXT,
-                                Message.Status.REQUEST, 
-                                in));
+                            0,
+                            new ArrayList<>() {{
+                                add(5);
+                            }},
+                            Message.Type.TEXT,
+                            Message.Status.REQUEST,
+                            in));
                 }
             } while (!quit);
         }
