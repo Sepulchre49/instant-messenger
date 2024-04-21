@@ -17,6 +17,7 @@ public class Client {
     private Socket socket;
     private ObjectOutputStream write;
     private ObjectInputStream read;
+    private Scanner scanner;
 
     private final ClientUser user = new ClientUser();
     private final GUI clientGUI = new GUI();
@@ -24,12 +25,59 @@ public class Client {
     public Client() {
         this.host = "127.0.0.1";
         this.port = 3000;
+
+        scanner = new Scanner(System.in);
+
     }
 
+    public void doMessageReadLoop() throws IOException, ClassNotFoundException {
+        int attempts = 3;
+        boolean success = false;
+        while (!success && attempts > 0) {
+            System.out.println("Username: ");
+            String user = scanner.nextLine();
+
+            System.out.println("Password: ");
+            String pass = scanner.nextLine();
+
+            success = login(user, pass);
+            --attempts;
+        }
+
+        if (success) {
+            System.out.println("Successfully logged in.");
+
+            boolean quit = false;
+            do {
+                System.out.println("Enter a message, or type 'logout' to quit: ");
+                String in = scanner.nextLine();
+                if (in.equals("logout")) {
+                    System.out.println("Logging out...");
+
+                    if (logout()) {
+                        System.out.println("(Client) Successfully logged out.");
+                    } else {
+                        System.out.println("Error logging out.");
+                    }
+                    quit = true;
+                } else {
+                    ArrayList<Integer> recipients = new ArrayList<>() {{
+                        add(5);
+                    }};
+                    sendMessage(new Message(
+                            0,
+                            new ArrayList<>() {{
+                                add(5);
+                            }},
+                            Message.Type.TEXT,
+                            Message.Status.REQUEST,
+                            in));
+                }
+            } while (!quit);
+        }
+    }
 
     public void connectToServer() throws IOException {
-        Scanner scanner = new Scanner(System.in); //to be removed after GUI implementation.
-
         try {
             System.out.println("Enter the host address to connect to: <127.0.0.1>");
             String inputHost = scanner.nextLine();
@@ -183,54 +231,21 @@ public class Client {
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         System.out.println("Hello from the client!");
-        Scanner scanner = new Scanner(System.in);
 
         Client client = new Client();
-        client.connectToServer();
 
-        int attempts = 3;
-        boolean success = false;
-        while (!success && attempts > 0) {
-            System.out.println("Username: ");
-            String user = scanner.nextLine();
-
-            System.out.println("Password: ");
-            String pass = scanner.nextLine();
-
-            success = client.login(user, pass);
-            --attempts;
+        try {
+            client.connectToServer();
+        } catch (IOException e) {
+            System.out.println("Error connecting to server.");
+            System.exit(1);
         }
 
-        if (success) {
-            System.out.println("Successfully logged in.");
-
-            boolean quit = false;
-            do {
-                System.out.println("Enter a message, or type 'logout' to quit: ");
-                String in = scanner.nextLine();
-                if (in.equals("logout")) {
-                    System.out.println("Logging out...");
-
-                    if (client.logout()) {
-                        System.out.println("(Client) Successfully logged out.");
-                    } else {
-                        System.out.println("Error logging out.");
-                    }
-                    quit = true;
-                } else {
-                    ArrayList<Integer> recipients = new ArrayList<>() {{
-                        add(5);
-                    }};
-                    client.sendMessage(new Message(
-                            0,
-                            new ArrayList<>() {{
-                                add(5);
-                            }},
-                            Message.Type.TEXT,
-                            Message.Status.REQUEST,
-                            in));
-                }
-            } while (!quit);
+        try {
+            client.doMessageReadLoop();
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Error in message loop.");
+            System.exit(1);
         }
     }
 }
