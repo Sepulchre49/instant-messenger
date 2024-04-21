@@ -4,7 +4,9 @@ import shared.Message;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -119,8 +121,25 @@ public class Server {
         // Log message details to ConversationLog
         ConversationLog conversationLog = new ConversationLog(msg.getSenderId(), msg.getRecipientId(), msg.getMessageId(), conversation.getID());
         conversationLog.addMessage(msg);
-        // Assuming you want to log to a file, you can implement file writing here
-        // Example: conversation.getLog().write(conversationLog);
+        
+        File logFile = conversation.getLog();
+        try {
+            // If the log file doesn't exist, create one
+            if (!logFile.exists()) {
+                logFile.createNewFile();
+            }
+            
+            // Write ConversationLog to the log file
+            FileOutputStream fileOutputStream = new FileOutputStream(logFile, true); // Append mode
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(conversationLog);
+            objectOutputStream.close();
+            fileOutputStream.close();
+            
+            System.out.println("Conversation log written to file: " + logFile.getAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("Error writing conversation log to file: " + e.getMessage());
+        }
     }
 
     public static void main(String[] args) throws IOException {
