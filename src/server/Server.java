@@ -22,6 +22,7 @@ public class Server {
     private ServerSocket socket;
     private Map<String, ServerUser> users;
     private Map<String, ServerUser> activeUsers;
+    private Map<String, Conversation> conversations;
 
     public Server(int port) throws IOException {
 	socket = new ServerSocket(port);
@@ -100,7 +101,26 @@ public class Server {
     }
 
     private void log(Message msg) {
-        // TODO: Implement logging
+    	
+        String conversationID = msg.getConversationId();
+        Conversation conversation = conversations.get(conversationID);
+        if (conversation != null) {
+            conversation.addMsg(msg); // Add message to conversation
+            System.out.println("Message logged for conversation " + conversationID);
+            // Also, log the message into the ConversationLog
+            logToConversationLog(msg, conversation);
+        } else {
+            System.out.println("Conversation " + conversationID + " not found.");
+        }
+        
+    }
+    
+    private void logToConversationLog(Message msg, Conversation conversation) {
+        // Log message details to ConversationLog
+        ConversationLog conversationLog = new ConversationLog(msg.getSenderId(), msg.getRecipientId(), msg.getMessageId(), conversation.getID());
+        conversationLog.addMessage(msg);
+        // Assuming you want to log to a file, you can implement file writing here
+        // Example: conversation.getLog().write(conversationLog);
     }
 
     public static void main(String[] args) throws IOException {

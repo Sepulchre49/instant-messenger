@@ -1,5 +1,7 @@
 package server;
 
+import shared.Message;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -7,9 +9,7 @@ import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import shared.Message;
-
-class Session implements Runnable {
+public class Session implements Runnable {
     private Socket client;
     private String clientAddress;
     private ObjectInputStream in;
@@ -58,7 +58,12 @@ class Session implements Runnable {
         Message res = new Message(
                     Message.Type.LOGIN, 
                     Message.Status.FAILURE, 
-                    "Failed to log in!");
+                    "Failed to log in!", 
+                    -1, // senderId
+                    -1, // recipientId
+                    -1, // messageId
+                    null // conversationId
+            );
 
         if (matcher.find()) {
             String username = matcher.group(1);
@@ -71,7 +76,12 @@ class Session implements Runnable {
                 res = new Message(
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
-                        "Successfully logged in!");
+                        "Successfully logged in!", 
+                        -1, // senderId
+                        -1, // recipientId
+                        -1, // messageId
+                        null // conversationId
+                );
                 success = true;
             }
         }
@@ -83,7 +93,15 @@ class Session implements Runnable {
     private void handleDuplicateLogin() {
         System.out.println("Received duplicate login request from " + clientAddress);
         try {
-            out.writeObject(new Message(Message.Type.LOGIN, Message.Status.FAILURE, "Nu uh uh"));
+            out.writeObject(new Message(
+                    Message.Type.LOGIN, 
+                    Message.Status.FAILURE, 
+                    "Nu uh uh", 
+                    -1, // senderId
+                    -1, // recipientId
+                    -1, // messageId
+                    null // conversationId
+            ));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -94,9 +112,14 @@ class Session implements Runnable {
             System.out.println("Logging out client at " + clientAddress);
             boolean success = server.logout(user);
             out.writeObject(new Message(
-                        Message.Type.LOGOUT, 
-                        Message.Status.SUCCESS, 
-                        "You have been logged out of the server."));
+                    Message.Type.LOGOUT, 
+                    Message.Status.SUCCESS, 
+                    "You have been logged out of the server.", 
+                    -1, // senderId
+                    -1, // recipientId
+                    -1, // messageId
+                    null // conversationId
+            ));
             out.close();
             in.close();
             client.close();
@@ -109,11 +132,21 @@ class Session implements Runnable {
     }
 
     private void handleText(Message m) throws IOException {
+        int senderId = m.getSenderId();
+        int recipientId = m.getRecipientId();
+        int messageId = m.getMessageId();
+        String conversationId = m.getConversationId();
+
         server.forward(m);
         out.writeObject(new Message(
-                    Message.Type.TEXT,
-                    Message.Status.SUCCESS,
-                    "Message received."));
+                Message.Type.TEXT, 
+                Message.Status.SUCCESS, 
+                "Message received.", 
+                senderId, // senderId
+                recipientId, // recipientId
+                messageId, // messageId
+                conversationId // conversationId
+        ));
     }
 
     private void doMessageLoop() throws IOException {
@@ -152,7 +185,7 @@ class Session implements Runnable {
         try {
             doMessageLoop();
         } catch (IOException e) {
-            System.out.println("An exception occured while processing message loop for client " + clientAddress);
+            System.out.println("An exception occurred while processing message loop for client " + clientAddress);
             e.printStackTrace();
             System.exit(1);
         }

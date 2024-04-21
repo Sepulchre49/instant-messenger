@@ -20,11 +20,19 @@ public class Message implements Serializable {
     private Type type;
     private Status status;
     private String content;
+    private int senderId;
+    private int recipientId;
+    private int messageId;
+    private String conversationId;
 
-    public Message(Type t, Status s, String msg) {
+    public Message(Type t, Status s, String msg, int senderId, int recipientId, int messageId, String conversationId) {
         this.type = t;
         this.status = s;
         this.content = msg;
+        this.senderId = senderId;
+        this.recipientId = recipientId;
+        this.messageId = messageId;
+        this.conversationId = conversationId;
     }
 
     public Type getType() {
@@ -37,5 +45,21 @@ public class Message implements Serializable {
 
     public String getContent() {
         return content;
+    }
+
+    public int getSenderId() {
+        return senderId;
+    }
+
+    public int getRecipientId() {
+        return recipientId;
+    }
+
+    public int getMessageId() {
+        return messageId;
+    }
+
+    public String getConversationId() {
+        return conversationId;
     }
 }

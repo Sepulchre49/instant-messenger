@@ -55,21 +55,44 @@ public class Client {
         Message m = new Message(
             Message.Type.LOGIN, 
             Message.Status.REQUEST,
-            String.format("username: %s password: %s", username, password)
+            String.format("username: %s password: %s", username, password),
+            // Fill these down below.
+            -1,
+            -1, 
+            -1, 
+            null
         );
 
-        write.writeObject(m);
+        int senderId = user.getUserId(); 
+        Message loginMessage = new Message(
+            m.getType(), 
+            m.getStatus(), 
+            m.getContent(), 
+            senderId, 
+            -1, // recipientId
+            -1, // messageId
+            null // conversationId
+        );
+
+        write.writeObject(loginMessage);
         Message res = (Message) read.readObject();
         System.out.println(res.getContent());
         return res.getStatus().equals(Message.Status.SUCCESS);
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
-        write.writeObject(new Message(
-            Message.Type.LOGOUT,
-            Message.Status.REQUEST,
-            "Logging out!"));
+        int senderId = user.getUserId(); // Example: Get sender ID from user object
+        Message logoutMessage = new Message(
+            Message.Type.LOGOUT, 
+            Message.Status.REQUEST, 
+            "Logging out!", 
+            senderId, 
+            -1, // recipientId
+            -1, // messageId
+            null // conversationId
+        );
 
+        write.writeObject(logoutMessage);
         Message res = (Message) read.readObject();
         System.out.println(res.getContent());
         return res.getStatus() == Message.Status.SUCCESS;
@@ -80,7 +103,22 @@ public class Client {
     }
 
     public void sendMessage(Message message) throws IOException, ClassNotFoundException {
-        write.writeObject(message);
+        int senderId = user.getUserId(); // Example: Get sender ID from user object
+        int recipientId = message.getRecipientId();
+        int messageId = message.getMessageId();
+        String conversationId = message.getConversationId();
+
+        Message newMessage = new Message(
+                message.getType(), 
+                message.getStatus(), 
+                message.getContent(), 
+                senderId, 
+                recipientId, 
+                messageId, 
+                conversationId
+        );
+
+        write.writeObject(newMessage);
         Message res = (Message) read.readObject();
         System.out.println(res.getContent());
     }
@@ -123,7 +161,12 @@ public class Client {
                     client.sendMessage(new Message(
                         Message.Type.TEXT, 
                         Message.Status.REQUEST, 
-                        in));
+                        in,
+                        // we will fill these in the above sendMessage function.
+                        -1,
+                        -1, 
+                        -1, 
+                        null));
                 }
             } while (!quit);
         }
