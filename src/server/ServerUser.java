@@ -1,5 +1,6 @@
 package server;
 
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Queue;
@@ -7,7 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import shared.Message;
 
-public class ServerUser {
+class ServerUser {
     private static int count = 1;
     private int userId;
     private String username, password;
@@ -32,8 +33,25 @@ public class ServerUser {
         this.out = out;
     }
 
-    public ObjectOutputStream getOutputStream() {
-        return out;
+    public int getInboxCount() {
+        return messageQueue.size();
+    }
+
+    public void deliver() {
+        Message m = messageQueue.poll();
+        if (m != null) {
+            try {
+                System.out.println("Delivering message");
+                synchronized (out) {
+                    out.writeObject(m);
+                    out.flush();
+                }
+                System.out.println("Delivered message");
+            } catch (IOException e) {
+                System.err.println("Failed delivering message to user " + userId);
+                e.printStackTrace();
+            }
+        }
     }
 
     public int getUserId() {
@@ -53,7 +71,8 @@ public class ServerUser {
     }
 
     public void receive(Message m) {
-        messageQueue.add(m);
+        messageQueue.offer(m);
+        System.out.println("Successfully added message to " + username + "'s message queue");
     }
 
     public synchronized void login() {

@@ -92,6 +92,7 @@ class Session implements Runnable {
                         Message.Status.SUCCESS, 
                         "Successfully logged in!");
                 success = true;
+                user.setOutputStream(out);
             }
         }
 

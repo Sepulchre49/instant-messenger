@@ -35,14 +35,14 @@ public class Server {
 
     public Server(int port) throws ServerInitializationException {
         try {
-	    socket = new ServerSocket(port);
+            socket = new ServerSocket(port);
         } catch (IOException e) {
             throw new ServerInitializationException("Error creating the ServerSocket.", e);
         }
 
         usernames = new HashMap<>();
-	users = new HashMap<>();
-	activeUsers = new HashSet<>();
+        users = new HashMap<>();
+        activeUsers = new HashSet<>();
         
         try {
             init_users();
@@ -50,19 +50,19 @@ public class Server {
             throw new ServerInitializationException("Could not find users.txt file. No users could be loaded.", e);
         }
 
-	ExecutorService tp = Executors.newFixedThreadPool(MAX_THREADS);
-	tp.execute(new MessageQueueWriter());
+        ExecutorService tp = Executors.newFixedThreadPool(MAX_THREADS);
+        tp.execute(new MessageQueueWriter());
 
-	System.out.println("Now listening on port " + port + "...");
-	while (true) {
+        System.out.println("Now listening on port " + port + "...");
+        while (true) {
             try {
-	        Socket clientSocket = socket.accept();
-	        tp.execute(new Session(clientSocket, this));
+                Socket clientSocket = socket.accept();
+                tp.execute(new Session(clientSocket, this));
             } catch (IOException e) {
                 System.err.println("Error accepting a new connection.");
                 e.printStackTrace();
             }
-	}
+        }
     }
 
     private void init_users() throws FileNotFoundException {
@@ -92,18 +92,18 @@ public class Server {
     }
 
     public synchronized ServerUser login(String username, String password) {
-	if (usernames.containsKey(username)) {
+        if (usernames.containsKey(username)) {
             int id = usernames.get(username);
-	    ServerUser user = users.get(id);
-	    if (user.authenticate(password)) {
-		activeUsers.add(user.getUserId());
-		System.out.println("Successfully logged in user " + username);
+            ServerUser user = users.get(id);
+            if (user.authenticate(password)) {
+                activeUsers.add(user.getUserId());
+                System.out.println("Successfully logged in user " + username + " w/ id " + user.getUserId());
                 return user;
-	    } else {
-		System.out.println("Authentication failure for user " + username);
+            } else {
+                System.out.println("Authentication failure for user " + username);
                 return null;
-	    }
-	} else {
+            }
+        } else {
             System.out.println("User " + username + " does not exist on the system.");
             return null;
         }
@@ -115,19 +115,21 @@ public class Server {
             return;
         }
 
-	if (activeUsers.contains(user.getUserId())) {
-	    user.logout();
-	    activeUsers.remove(user.getUserId());
-	} else {
-	    System.out.println("Failed to log out user " + user.getUsername() + ". Already signed out.");
-	}
+        if (activeUsers.contains(user.getUserId())) {
+            user.logout();
+            activeUsers.remove(user.getUserId());
+        } else {
+            System.out.println("Failed to log out user " + user.getUsername() + ". Already signed out.");
+        }
     }
 
     public void forward(Message msg) {
         System.out.println("Forwarded message received by server."); 
 
         for (int id : msg.getReceiverIds()) {
+            System.out.println("Recipient id: " + id);
             ServerUser recipient = users.get(id);
+            System.out.println("Adding msg to " + recipient.getUsername() + "'s message queue");
             recipient.receive(msg);
         }
 
@@ -140,19 +142,35 @@ public class Server {
 
     public static void main(String[] args) {
         try {
-	    Server s = new Server(DEFAULT_PORT);
+            Server s = new Server(DEFAULT_PORT);
         } catch (ServerInitializationException e) {
             e.printStackTrace(); 
             System.exit(1);
         }
     }
 
-    private static class MessageQueueWriter implements Runnable {
-	@Override
-	public void run() {
-	    // TODO: Repeatedly check each active user's message queue; 
-            // write one message per users queue per iteration
-	    System.out.println("Hello from the MessageQueueWriter!");
-	}
+    private class MessageQueueWriter implements Runnable {
+        private boolean quit;
+
+        public MessageQueueWriter() {
+            quit = false;
+        }
+
+        public void quit() {
+            quit = true;
+        }
+
+        @Override
+        public void run() {
+            while (!quit) {
+                for (int id : activeUsers) {
+                    ServerUser user = users.get(id);
+                    if (user != null && user.getInboxCount() > 0) {
+                        System.out.println("Delivering message to user " + user.getUsername());
+                        user.deliver();
+                    }
+                }
+            }
+        }
     }
 }

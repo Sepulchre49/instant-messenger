@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
@@ -130,10 +131,11 @@ public class Client {
                     }
                     quit = true;
                 } else {
+                    ArrayList<Integer> recipients = new ArrayList<>() {{add(5);}};
                     client.sendMessage(new Message(
-                                0, 
-                                null,
-                                Message.Type.TEXT, 
+                                0,
+                                new ArrayList<>() {{add(5);}},
+                                Message.Type.TEXT,
                                 Message.Status.REQUEST, 
                                 in));
                 }
