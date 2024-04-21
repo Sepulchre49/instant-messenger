@@ -45,18 +45,17 @@ public class Client {
 
             this.socket = new Socket(host, port);
 
-            InQueue in = new InQueue(socket);
-            Thread inThread = new Thread(in);
-            inThread.start();
-
             OutQueue out = new OutQueue(socket);
             Thread outThread = new Thread(out);
             outThread.start();
 
+            InQueue in = new InQueue(socket);
+            Thread inThread = new Thread(in);
+            inThread.start();
+
         } catch (IOException e) {
             System.err.println("Error in I/O operations: " + e.getMessage());
             e.printStackTrace();
-
         }
     }
 
