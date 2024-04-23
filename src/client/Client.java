@@ -76,19 +76,19 @@ public class Client {
 
     public void connectToServer() throws IOException {
         try {
-            System.out.println("Enter the host address to connect to: <127.0.0.1>");
-            String inputHost = scanner.nextLine();
-            if (!inputHost.isEmpty()) {
-                this.host = inputHost;
-            }
+//            System.out.println("Enter the host address to connect to: <127.0.0.1>");
+//            String inputHost = scanner.nextLine();
+//            if (!inputHost.isEmpty()) {
+//                this.host = inputHost;
+//            }
+//
+//            System.out.println("Enter the port number to connect to: <3000>");
+//            String inputPort = scanner.nextLine();
+//            if (!inputPort.isEmpty()) {
+//                this.port = Integer.parseInt(inputPort);
+//            }
 
-            System.out.println("Enter the port number to connect to: <3000>");
-            String inputPort = scanner.nextLine();
-            if (!inputPort.isEmpty()) {
-                this.port = Integer.parseInt(inputPort);
-            }
-
-            this.socket = new Socket(host, port);
+            this.socket = new Socket(this.host, this.port);
 
             OutQueue out = new OutQueue(socket);
             Thread outThread = new Thread(out);
