@@ -13,7 +13,6 @@ public class MessageTester {
 	
 	private Message msg;
 	
-	
 	@Before 
 	public void setUp() {
 		Set<Integer> recipients = new HashSet<>(Arrays.asList(1,2,3));
