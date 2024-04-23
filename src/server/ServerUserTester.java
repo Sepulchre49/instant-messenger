@@ -88,5 +88,4 @@ public class ServerUserTester {
 		assertNull(user.getConnection());
 	}
 	
-
 }
