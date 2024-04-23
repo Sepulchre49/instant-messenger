@@ -9,14 +9,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 
 public class Client {
     private String host;
     private int port;
     private Socket socket;
-    private ObjectOutputStream write;
-    private ObjectInputStream read;
     private Scanner scanner;
 
     private final ClientUser user = new ClientUser();
@@ -27,10 +25,9 @@ public class Client {
         this.port = 3000;
 
         scanner = new Scanner(System.in);
-
     }
 
-    public void doMessageReadLoop() throws IOException, ClassNotFoundException {
+    public void doMessageReadLoop() throws IOException, ClassNotFoundException, ExecutionException, InterruptedException {
         int attempts = 3;
         boolean success = false;
         while (!success && attempts > 0) {
@@ -40,7 +37,7 @@ public class Client {
             System.out.println("Password: ");
             String pass = scanner.nextLine();
 
-            success = login(user, pass);
+            success = login(user,pass);
             --attempts;
         }
 
@@ -108,6 +105,7 @@ public class Client {
     }
 
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
+        Message response = null;
         Message m = new Message(
                 0,
                 null,
@@ -116,12 +114,17 @@ public class Client {
                 String.format("username: %s password: %s", username, password));
 
         OutQueue.out.add(m);
-        InQueue.in.add((Message) read.readObject());
-//        return (res.getType().equals(Message.Type.LOGIN) && res.getStatus().equals(Message.Status.SUCCESS));
-        return true; // TO-DO: Need to implement callback methods. Look into Future<Boolean>?
+
+        while(response == null) {
+            response = InQueue.in.poll();
+        }
+
+        return response.getStatus() == Message.Status.SUCCESS;
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
+        boolean success = false;
+        Message response;
         Message m = new Message(
                 user.getUserId(),
                 null,
@@ -130,9 +133,16 @@ public class Client {
                 "Logging out!");
 
         OutQueue.out.add(m);
-        InQueue.in.add((Message) read.readObject());
-//        return res.getStatus() == Message.Status.SUCCESS;
-        return true; // TO-DO: Need to implement callback methods. Look into Future<Boolean>?
+
+        while(!success){
+            response = InQueue.in.poll();
+
+            assert response != null;
+            if(response.getType() == Message.Type.LOGOUT && response.getStatus() == Message.Status.SUCCESS){
+                success = true;
+            }
+        }
+        return success;
     }
 
     public void viewConversation(int conversationID) {
@@ -141,8 +151,6 @@ public class Client {
 
     public void sendMessage(Message message) throws IOException, ClassNotFoundException {
         OutQueue.out.add(message);
-        InQueue.in.add((Message) read.readObject());
-//        System.out.println(res.getContent());
     }
 
     public void receiveMessage(Message message) {
@@ -160,11 +168,12 @@ public class Client {
 
         @Override
         public void run() {
-            System.out.println("The inbound thread has started.");
             while (!quit) {
                 try {
                     Message message = (Message) read.readObject();
-                    System.out.println("Received message: " + message.getContent());
+                    in.add(message);
+
+
                 } catch (IOException | ClassNotFoundException e) {
                     if (!quit) {
                         System.out.println("Error in InQueue: " + e.getMessage());
@@ -186,7 +195,7 @@ public class Client {
     }
 
     private static class OutQueue implements Runnable {
-        public static Queue<Message> out = new ConcurrentLinkedQueue<>();
+        public static BlockingQueue<Message> out = new LinkedBlockingQueue<>();
         private final ObjectOutputStream write;
         private volatile boolean quit = false;
 
@@ -195,7 +204,6 @@ public class Client {
         }
 
         public void run() {
-            System.out.println("The outbound thread has started.");
             while (!quit) {
                 try {
                     Message message = out.poll();
@@ -245,6 +253,10 @@ public class Client {
             client.doMessageReadLoop();
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Error in message loop.");
+            System.exit(1);
+
+        } catch (ExecutionException | InterruptedException e) {
+            System.out.println("Error in auth.");
             System.exit(1);
         }
     }
