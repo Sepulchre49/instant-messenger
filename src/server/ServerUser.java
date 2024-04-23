@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import shared.Message;
 
-class ServerUser {
+public class ServerUser {
     private static int count = 1;
     private int userId;
     private String username, password;
@@ -23,9 +23,9 @@ class ServerUser {
             count++;
 
         this.userId = count++;
-	this.username = username;
-	this.password = password;
-	this.isLoggedIn = false;
+        this.username = username;
+        this.password = password;
+        this.isLoggedIn = false;
         this.messageQueue = new ConcurrentLinkedQueue<>();
     }
     

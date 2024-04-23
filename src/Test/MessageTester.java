@@ -10,8 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import shared.Message;
-import shared.Message.Status;
-import shared.Message.Type;
 
 public class MessageTester {
 	
