@@ -137,8 +137,22 @@ public class Server {
     }
 
     private void log(Message msg) {
-        // TODO: Implement logging
+        // Get relevant message details
+        int senderID = msg.getSenderId();
+        Set<Integer> receiverIDs = msg.getReceiverIds();
+        int messageID = msg.hashCode(); // Generate a unique ID for each message
+        int conversationID = -1; // Might need to add conversation id in msg class itself.......
+
+        // Create a new instance of ConversationLog
+        ConversationLog conversationLog = new ConversationLog(senderID, receiverIDs.iterator().next(), messageID, conversationID);
+        
+        // Add the message to the log
+        conversationLog.addMessage(msg);
+        
+        // Write the log to a file
+        conversationLog.writeLogToFile("conversation_log.txt");
     }
+
 
     public static void main(String[] args) {
         try {
