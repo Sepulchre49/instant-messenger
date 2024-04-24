@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 
 
 public class ConversationView extends JFrame {
+    private final GUI gui;
     private JFrame panel;
     private JTextArea chatArea;
     private JTextField messageField;
@@ -15,9 +16,11 @@ public class ConversationView extends JFrame {
     private JScrollPane scrollPane;
     private JLabel recipientLabel;
 
-    public ConversationView() {
+    public ConversationView(GUI gui) {
         // main frame
         super("Conversation");
+
+        this.gui = gui;
         setSize(625, 575);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -28,8 +31,11 @@ public class ConversationView extends JFrame {
         header.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // back button
-        backButton = new JButton("<");
-        backButton.setPreferredSize(new Dimension(45, 45));
+        ImageIcon backIcon = new ImageIcon("client/icons/back.png");
+        Image scaledBackImage = backIcon.getImage().getScaledInstance(25,25,Image.SCALE_SMOOTH);
+        ImageIcon scaledBackIcon = new ImageIcon(scaledBackImage);
+        backButton = new JButton(scaledBackIcon);
+        backButton.setPreferredSize(new Dimension(25, 25));
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -87,13 +93,5 @@ public class ConversationView extends JFrame {
             // Clear the message field
             messageField.setText("");
         }
-    }
-
-    public static void main(String[] args) { // Another testing function. I really want to drink a soda
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new ConversationView();
-            }
-        });
     }
 }
