@@ -118,6 +118,8 @@ public class Client {
                 "Logging out!");
 
         write.writeObject(m);
+        // TODO: This throws a StreamCorruptionException: invalid type code: FF
+        // Doesnt affect usage because it happens after logout phase, but would like to fix this in the future
         Message res = (Message) read.readObject();
         return res.getType() == Message.Type.LOGOUT && res.getStatus() == Message.Status.SUCCESS;
     }
