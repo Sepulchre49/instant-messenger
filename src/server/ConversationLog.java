@@ -1,24 +1,21 @@
 package server;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import shared.Message;
-
-import java.util.ArrayList;
 
 public class ConversationLog {
     private Date timeStamp;
     private int senderID;
-    private int recipientID;
+    private HashSet<Integer> recipientIDs;
     private int messageID;
     private int conversationID;
     private List<Message> messages;
 
-    public ConversationLog(int senderID, int recipientID, int messageID, int conversationID) {
+    public ConversationLog(int senderID, Collection<Integer> recipientIDs, int messageID, int conversationID) {
         this.timeStamp = new Date();
         this.senderID = senderID;
-        this.recipientID = recipientID;
+        this.recipientIDs = new HashSet<>(recipientIDs);
         this.messageID = messageID;
         this.conversationID = conversationID;
         this.messages = new ArrayList<>();
@@ -32,8 +29,8 @@ public class ConversationLog {
         return this.senderID;
     }
 
-    public int getRecipientID() {
-        return this.recipientID;
+    public Iterator<Integer> getRecipientID() {
+        return recipientIDs.iterator();
     }
 
     public int getMessageID() {

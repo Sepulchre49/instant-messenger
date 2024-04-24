@@ -1,6 +1,10 @@
 package shared;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Message implements Serializable {
     public enum Type {
@@ -14,25 +18,46 @@ public class Message implements Serializable {
         SUCCESS,
         FAILURE,
         ERROR,
-        INVALID_ARGUMENT
+        INVALID_ARGUMENT,
+        RECEIVED
     }
 
+    private static int count = 1;
+    private int senderId;
+    private Set<Integer> receiverIds;
+    private Date timestamp;
     private Type type;
     private Status status;
     private String content;
-    private int senderId;
-    private int recipientId;
     private int messageId;
-    private String conversationId;
+    private int conversationId;
 
-    public Message(Type t, Status s, String msg, int senderId, int recipientId, int messageId, String conversationId) {
+    public Message(Type t, Status s, String msg, int senderId, Collection<Integer> recipients, int conversationId) {
+        this.senderId = senderId;
+        this.receiverIds = new HashSet<>();
         this.type = t;
         this.status = s;
         this.content = msg;
-        this.senderId = senderId;
-        this.recipientId = recipientId;
-        this.messageId = messageId;
+        this.timestamp = new Date();
         this.conversationId = conversationId;
+
+        if (recipients != null) {
+            for (int id : recipients) {
+                receiverIds.add(id);
+            }
+        }
+    }
+
+    public int getSenderId() {
+        return senderId;
+    }
+
+    public Set<Integer> getReceiverIds() {
+        return receiverIds;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
     }
 
     public Type getType() {
@@ -47,19 +72,11 @@ public class Message implements Serializable {
         return content;
     }
 
-    public int getSenderId() {
-        return senderId;
-    }
-
-    public int getRecipientId() {
-        return recipientId;
-    }
-
     public int getMessageId() {
         return messageId;
     }
 
-    public String getConversationId() {
+    public int getConversationId() {
         return conversationId;
     }
 }

@@ -1,15 +1,28 @@
 package server;
 
-import shared.Message;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Session implements Runnable {
+import shared.Message;
+
+class LoginException extends Exception {
+    public LoginException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+}
+
+class MessageLoopException extends Exception {
+    public MessageLoopException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+}
+
+class Session implements Runnable {
     private Socket client;
     private String clientAddress;
     private ObjectInputStream in;
@@ -17,58 +30,59 @@ public class Session implements Runnable {
     private Server server;
     private ServerUser user;
 
-    public Session(Socket s, Server server) {
+    public Session(Socket s, Server server) throws IOException {
         this.server = server;
         client = s;
         clientAddress = client.getInetAddress().getHostAddress();
         System.out.println("Connection created with " + clientAddress);
+
         try {
             in = new ObjectInputStream(client.getInputStream());
             out = new ObjectOutputStream(client.getOutputStream());
         } catch (IOException e) {
-            System.out.println("Error creating the object read/write streams.");
-            e.printStackTrace();
+            throw new IOException("Error creating the object read/write streams.", e);
         }
     }
 
-    private void waitForLogin() {
-        boolean isLoggedIn = false;
-        do {
+    private boolean waitForLogin() throws LoginException {
+        int attempts = 3;
+        boolean success = false;
+        while (!success && attempts > 0) {
             try {
-                System.out.println("Received new connection request from " + clientAddress);
-                Message m = (Message) in.readObject();
+                Message m;
+                synchronized (in) {
+                    m = (Message) in.readObject();
+                }
                 if (m.getType() == Message.Type.LOGIN)
-                    isLoggedIn = handleLogin(m);
+                    success = handleLogin(m);
+                if (!success)
+                    --attempts;
             } catch (IOException e) {
-                System.out.println("Error reading object from the input stream while waiting for login message from "
-                        + clientAddress);
+                throw new LoginException("Error reading message from " + client + " in the login loop.", e);
             } catch (ClassNotFoundException e) {
-                System.out.println(
-                        "Could not find serialized class while waiting for login message from " + clientAddress);
-                System.exit(1);
+                throw new LoginException("Error trying to cast to Message class in the login loop.", e);
             }
-        } while (!isLoggedIn);
+        }
+        return success;
     }
 
-    private boolean handleLogin(Message m) throws IOException {
+    private boolean handleLogin(Message m) {
         boolean success = false;
-        String regex = "username:\\s*(\\w{3,})\\s+password:\\s*(\\w{6,})";
+        String regex = "username:\\s*(\\w+)\\s+password:\\s*(\\w+)";
         Matcher matcher = Pattern.compile(regex).matcher(m.getContent());
 
         Message res = new Message(
-                    Message.Type.LOGIN, 
+                    Message.Type.LOGIN,
                     Message.Status.FAILURE, 
-                    "Failed to log in!", 
-                    -1, // senderId
-                    -1, // recipientId
-                    -1, // messageId
-                    null // conversationId
+                    "Failed to log in!",
+                    Server.SERVER_USER_ID, // senderId
+                    null,
+                    -1 // conversationId
             );
 
         if (matcher.find()) {
             String username = matcher.group(1);
             String password = matcher.group(2);
-            String logMsg = String.format("Found username: %s, password: %s", username, password);
 
             user = server.login(username, password);
 
@@ -76,85 +90,125 @@ public class Session implements Runnable {
                 res = new Message(
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
-                        "Successfully logged in!", 
-                        -1, // senderId
-                        -1, // recipientId
-                        -1, // messageId
-                        null // conversationId
+                        "Successfully logged in!",
+                        Server.SERVER_USER_ID, // senderId
+                        new ArrayList<>(user.getUserId()), // recipientId
+                        -1 // conversationId
                 );
                 success = true;
+                user.setOutputStream(out);
             }
         }
 
-        out.writeObject(res);
+        try {
+            synchronized (out) {
+                out.writeObject(res);
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing login success message to " + clientAddress);
+            e.printStackTrace();
+        }
+
         return success;
     }
 
     private void handleDuplicateLogin() {
         System.out.println("Received duplicate login request from " + clientAddress);
         try {
-            out.writeObject(new Message(
-                    Message.Type.LOGIN, 
-                    Message.Status.FAILURE, 
-                    "Nu uh uh", 
-                    -1, // senderId
-                    -1, // recipientId
-                    -1, // messageId
-                    null // conversationId
-            ));
+            synchronized (out) {
+                out.writeObject(new Message(
+                        Message.Type.LOGIN,
+                        Message.Status.FAILURE,
+                        "Nu uh uh",
+                        Server.SERVER_USER_ID, // senderId
+                        new ArrayList<>(user.getUserId()), // recipientId
+                        -1 // conversationId
+                ));
+            }
         } catch (IOException e) {
+            System.err.println("Error trying to write login failure message to " + client);
             e.printStackTrace();
         }
     }
 
     private void handleLogout() {
+        if (user == null) return;
+
         try {
             System.out.println("Logging out client at " + clientAddress);
-            boolean success = server.logout(user);
-            out.writeObject(new Message(
-                    Message.Type.LOGOUT, 
-                    Message.Status.SUCCESS, 
-                    "You have been logged out of the server.", 
-                    -1, // senderId
-                    -1, // recipientId
-                    -1, // messageId
-                    null // conversationId
-            ));
-            out.close();
-            in.close();
-            client.close();
-
+            server.logout(user);
+            synchronized (out) {
+                Message logoutMsg = new Message(
+                        Message.Type.LOGOUT,
+                        Message.Status.SUCCESS,
+                        "You've been logged out of the server!",
+                        Server.SERVER_USER_ID,
+                        new ArrayList<>(user.getUserId()),
+                        -1
+                );
+                out.writeObject(logoutMsg);
+            }
             System.out.println("Successfully logged out client " + clientAddress);
         } catch (IOException e) {
-            System.out.println("Error trying to close connection with " + clientAddress);
+            System.err.println("Error writing logout message to " + clientAddress);
             e.printStackTrace();
         }
     }
 
-    private void handleText(Message m) throws IOException {
-        int senderId = m.getSenderId();
-        int recipientId = m.getRecipientId();
-        int messageId = m.getMessageId();
-        String conversationId = m.getConversationId();
-
-        server.forward(m);
-        out.writeObject(new Message(
-                Message.Type.TEXT, 
-                Message.Status.SUCCESS, 
-                "Message received.", 
-                senderId, // senderId
-                recipientId, // recipientId
-                messageId, // messageId
-                conversationId // conversationId
-        ));
+    private void terminate() {
+        // TODO: Make an special connection termination message
+        try {
+            synchronized(out) {
+                out.writeObject(new Message(
+                        Message.Type.LOGOUT,
+                        Message.Status.SUCCESS,
+                        "Terminating connection",
+                        Server.SERVER_USER_ID,
+                        null,
+                        -1
+                ));
+            }
+        } catch (IOException e) {
+            System.out.println("Error sending termination message. Proceeding with termination.");
+            e.printStackTrace();
+        } finally {
+            try {
+                client.close();
+            } catch (IOException e) {
+                System.err.println("Stupid error trying to close the client socket.");
+                e.printStackTrace();
+            }
+        }
     }
 
-    private void doMessageLoop() throws IOException {
+    private void handleText(Message m) {
+        server.forward(m);
+        try {
+            synchronized (out) {
+                out.writeObject(new Message(
+                        Message.Type.TEXT,
+                        Message.Status.RECEIVED,
+                        "Message received.",
+                        Server.SERVER_USER_ID,
+                        new ArrayList<>(user.getUserId()),
+                        -1
+                ));
+            }
+        } catch (IOException e) {
+            System.err.println("Error sending message received acknowledgement to " + clientAddress);
+            e.printStackTrace();
+        }
+    }
+
+    private void doMessageLoop() throws MessageLoopException {
         boolean quit = false;
         do {
             // Read a message
             try {
-                Message m = (Message) in.readObject();
+                Message m;
+                synchronized (in) {
+                    m = (Message) in.readObject();
+                }
                 switch (m.getType()) {
                     case TEXT:
                         handleText(m);
@@ -168,26 +222,23 @@ public class Session implements Runnable {
                         break;
                 }
             } catch (IOException e) {
-                System.out.println("Error while reading messages from " + clientAddress);
-                System.out.println("Terminating connection with " + clientAddress);
-                handleLogout();
-                quit = true;
+                throw new MessageLoopException("Error reading message from " + clientAddress, e);
             } catch (ClassNotFoundException e) {
-                System.out.println("Could not find serialized class for message from " + clientAddress);
-                quit = true;
+                throw new MessageLoopException("Error trying to cast to Message class in the message loop.", e);
             }
         } while (!quit);
     }
 
     @Override
     public void run() {
-        waitForLogin();
         try {
-            doMessageLoop();
-        } catch (IOException e) {
-            System.out.println("An exception occurred while processing message loop for client " + clientAddress);
+            if (waitForLogin()) {
+                doMessageLoop();
+            }
+        } catch (LoginException | MessageLoopException e) {
             e.printStackTrace();
-            System.exit(1);
+        } finally {
+            terminate();
         }
     }
 }
