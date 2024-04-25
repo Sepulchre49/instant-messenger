@@ -26,18 +26,6 @@ public class ClientUser {
         return username;
     }
     
-    public boolean login() {
-        return true;
-    }
-    
-    public void receive(Message message) {
-            
-    }
-    
-    public void logout() {
-            
-    }
-    
     public void loadConversation() {
             
     }
