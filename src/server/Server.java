@@ -109,6 +109,14 @@ public class Server {
         }
     }
 
+    public String getUserList() {
+    	String list = "";
+    	for (ServerUser user: users.values())
+    		list += String.format("%d %s\n", user.getUserId(), user.getUsername());
+    	
+    	return list;
+    }
+    
     public synchronized void logout(ServerUser user) {
         if (user == null) {
             System.out.println("Cannot log out null user.");

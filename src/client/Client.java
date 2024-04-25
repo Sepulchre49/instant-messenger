@@ -105,6 +105,7 @@ public class Client {
 
         write.writeObject(m);
         Message res = (Message) read.readObject();
+        System.out.println(res.getContent());
         return res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS;
     }
 
