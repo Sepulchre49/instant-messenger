@@ -66,7 +66,11 @@ public class LoginView extends JFrame implements ActionListener {
                 throw new RuntimeException(ex);
             }
 
-            gui.loginResult(success);
+            try {
+                gui.loginResult(success);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 }
