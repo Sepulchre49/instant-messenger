@@ -20,7 +20,7 @@ public class Client {
     private ObjectOutputStream write;
 
     private final ClientUser user = new ClientUser();
-    private final GUI clientGUI = new GUI();
+    private final GUI clientGUI = new GUI(this);
 
     public Client() {
         this.host = "127.0.0.1";
