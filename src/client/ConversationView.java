@@ -3,7 +3,6 @@ package client;
 import shared.Message;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,6 +39,7 @@ public class ConversationView extends JFrame {
         ImageIcon scaledBackIcon = new ImageIcon(scaledBackImage);
         backButton = new JButton(scaledBackIcon);
         backButton.setPreferredSize(new Dimension(25, 25));
+
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -105,6 +105,7 @@ public class ConversationView extends JFrame {
 
         if (message.equals("/quit")){
             gui.logoutResult(gui.client.logout());
+            return;
         }
 
         if (!message.isEmpty()) {

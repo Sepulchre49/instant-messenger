@@ -30,7 +30,10 @@ public class GUI {
             System.out.println("Successfully logged in.");
             showConversationView();
         } else {
-            JOptionPane.showMessageDialog(null, "Login Failed", "Login Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Login Failed",
+                    "Login Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -39,7 +42,10 @@ public class GUI {
             conversationView.setVisible(false);
             System.exit(1);
         } else {
-            JOptionPane.showMessageDialog(null, "Logout Failed", "Logout Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Logout Failed",
+                    "Logout Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -53,9 +59,9 @@ public class GUI {
 
     public void updateChatArea(Message message){
         if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.SUCCESS){
-            conversationView.chatArea.append(message.getContent());
+            conversationView.chatArea.append(message.getContent() + "\n");
         }
-        conversationView.chatArea.append(message.getContent());
+        conversationView.chatArea.append(message.getContent() + "\n");
     }
 
     public static void main(String[] args){
@@ -70,7 +76,7 @@ public class GUI {
                     System.exit(1);
                 }
 
-                client.gui = new GUI(client);
+                Client.gui = new GUI(client);
             }
         });
 
