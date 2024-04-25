@@ -9,7 +9,7 @@ import java.io.PrintStream;
 public class GUI {
     public final Client client;
     private final LoginView loginView;
-    private ConversationView conversationView;
+    public ConversationView conversationView;
 
     public GUI(Client client) {
         this.client = client;

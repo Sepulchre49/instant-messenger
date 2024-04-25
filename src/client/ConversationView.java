@@ -3,6 +3,7 @@ package client;
 import shared.Message;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 
 public class ConversationView extends JFrame {
     private final GUI gui;
-    private JTextArea chatArea;
+    public JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
     private JButton backButton;
@@ -93,17 +94,21 @@ public class ConversationView extends JFrame {
         setVisible(true);
 
         // opening message
-        chatArea.append("System: Enter a message, or type '/quit' to quit");
+        chatArea.setForeground(Color.gray);
+        chatArea.append("System: Enter a message, or type '/quit' to quit\n");
+        chatArea.setForeground(Color.black);
     }
 
     private void sendMessage() throws IOException, ClassNotFoundException {
         // Get the text from the message field
         String message = messageField.getText().trim();
 
+        if (message.equals("/quit")){
+            gui.logoutResult(gui.client.logout());
+        }
+
         if (!message.isEmpty()) {
             // Append the message to the chat area
-            chatArea.append("[User]: " + message + "\n");
-
             gui.client.sendMessage(new Message(
                     0,
                     new ArrayList<>() {{
@@ -114,12 +119,10 @@ public class ConversationView extends JFrame {
                     message
             ));
 
+            chatArea.append("[User]: " + message + "\n");
+
             // Clear the message field
             messageField.setText("");
         }
-    }
-
-    private void updateList(Message message){
-
     }
 }
