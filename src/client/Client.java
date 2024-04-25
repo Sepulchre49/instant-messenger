@@ -16,12 +16,11 @@ public class Client {
     private int port;
     private Socket socket;
     private Scanner scanner;
-    private ObjectInputStream read;
-    private ObjectOutputStream write;
+    ObjectInputStream read;
+    ObjectOutputStream write;
 
     private final ClientUser user = new ClientUser();
-    private final GUI clientGUI = new GUI();
-
+    public static GUI gui;
     public Client() {
         this.host = "127.0.0.1";
         this.port = 3000;
@@ -147,7 +146,7 @@ public class Client {
 
     }
 
-    private static class InQueue implements Runnable {
+    public static class InQueue implements Runnable {
         public static Queue<Message> in = new ConcurrentLinkedQueue<>();
         private final ObjectInputStream read;
         private volatile boolean quit = false;
@@ -194,7 +193,7 @@ public class Client {
     }
 
 
-    private static class OutQueue implements Runnable {
+    public static class OutQueue implements Runnable {
         public static BlockingQueue<Message> out = new LinkedBlockingQueue<>();
         private final ObjectOutputStream write;
         private volatile boolean quit = false;

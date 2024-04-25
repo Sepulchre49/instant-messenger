@@ -5,14 +5,18 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class LoginView extends JFrame implements ActionListener {
+    private final GUI gui;
     private final JTextField usernameField;
     private final JPasswordField passwordField;
     private final JButton loginButton;
 
-    public LoginView() {
+    public LoginView(GUI gui) {
         super("Messenger Login");
+        this.gui = gui;
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(300, 150);
         setLocationRelativeTo(null);
@@ -54,12 +58,19 @@ public class LoginView extends JFrame implements ActionListener {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
 
+            boolean success;
 
-            JOptionPane.showMessageDialog(this, "Login attempt: " + username + " with password: " + password);
+            try {
+                success = gui.client.login(username, password);
+            } catch (IOException | ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            try {
+                gui.loginResult(success);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         }
-    }
-
-    public static void main(String[] args) { // TESTING FUNCTION, OKAY????
-        new LoginView();
     }
 }

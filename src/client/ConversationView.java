@@ -1,23 +1,30 @@
 package client;
 
+import shared.Message;
+
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.ArrayList;
 
 
 public class ConversationView extends JFrame {
-    private JFrame panel;
-    private JTextArea chatArea;
+    private final GUI gui;
+    public JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
     private JButton backButton;
     private JScrollPane scrollPane;
     private JLabel recipientLabel;
 
-    public ConversationView() {
+    public ConversationView(GUI gui) {
         // main frame
         super("Conversation");
+
+        this.gui = gui;
         setSize(625, 575);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -28,8 +35,11 @@ public class ConversationView extends JFrame {
         header.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // back button
-        backButton = new JButton("<");
-        backButton.setPreferredSize(new Dimension(45, 45));
+        ImageIcon backIcon = new ImageIcon("client/icons/back.png");
+        Image scaledBackImage = backIcon.getImage().getScaledInstance(25,25,Image.SCALE_SMOOTH);
+        ImageIcon scaledBackIcon = new ImageIcon(scaledBackImage);
+        backButton = new JButton(scaledBackIcon);
+        backButton.setPreferredSize(new Dimension(25, 25));
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -56,7 +66,11 @@ public class ConversationView extends JFrame {
         messageField = new JTextField();
         messageField.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                sendMessage();
+                try {
+                    sendMessage();
+                } catch (IOException | ClassNotFoundException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -64,7 +78,11 @@ public class ConversationView extends JFrame {
         sendButton = new JButton("Send");
         sendButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                sendMessage();
+                try {
+                    sendMessage();
+                } catch (IOException | ClassNotFoundException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -74,26 +92,37 @@ public class ConversationView extends JFrame {
         messagePanel.add(sendButton, BorderLayout.EAST);
         add(messagePanel, BorderLayout.SOUTH);
         setVisible(true);
+
+        // opening message
+        chatArea.setForeground(Color.gray);
+        chatArea.append("System: Enter a message, or type '/quit' to quit\n");
+        chatArea.setForeground(Color.black);
     }
 
-    private void sendMessage() {
+    private void sendMessage() throws IOException, ClassNotFoundException {
         // Get the text from the message field
         String message = messageField.getText().trim();
 
+        if (message.equals("/quit")){
+            gui.logoutResult(gui.client.logout());
+        }
+
         if (!message.isEmpty()) {
             // Append the message to the chat area
+            gui.client.sendMessage(new Message(
+                    0,
+                    new ArrayList<>() {{
+                        add(1); // TODO : Hardcoded value. Must be replaced with actual recipient.
+                    }},
+                    Message.Type.TEXT,
+                    Message.Status.REQUEST,
+                    message, 1
+            ));
+
             chatArea.append("[User]: " + message + "\n");
 
             // Clear the message field
             messageField.setText("");
         }
-    }
-
-    public static void main(String[] args) { // Another testing function. I really want to drink a soda
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new ConversationView();
-            }
-        });
     }
 }

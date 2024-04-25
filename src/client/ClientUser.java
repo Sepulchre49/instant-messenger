@@ -32,6 +32,7 @@ public class ClientUser {
         return username;
     }
     
+
     public boolean login() {
         return true;
     }

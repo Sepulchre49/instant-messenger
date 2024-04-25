@@ -66,7 +66,7 @@ public class ConversationLog {
             writer.newLine();
             
             for (Message message : this.messages) {
-                writer.write("Message: " + message.toString());
+                writer.write("Message: " + message.getContent());
                 writer.newLine();
             }
             
