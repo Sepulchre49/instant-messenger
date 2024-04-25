@@ -61,7 +61,6 @@ public class GUI {
         if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.SUCCESS){
             conversationView.chatArea.append( "[Recipient]: " + message.getContent() + "\n");
         }
-        conversationView.chatArea.append(message.getContent() + "\n");
     }
 
     public static void main(String[] args){

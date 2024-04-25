@@ -1,18 +1,20 @@
 package client;
 
-import javax.imageio.plugins.jpeg.JPEGHuffmanTable;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class HomeView extends JFrame {
-    private final GUI gui;
+//    private final GUI gui;
+    public DefaultListModel<JPanel> conListModel;
 
-    public HomeView(GUI gui){
+    public HomeView(){
         super("Home");
 
-        this.gui = gui;
+//        this.gui = gui;
+
+        setSize(625, 575);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -22,8 +24,101 @@ public class HomeView extends JFrame {
 
         // home icon
 
-        // Home label
-        JLabel headerLabel = new JLabel("Your Conversations");
+        // home label
+        JLabel headerLabel = new JLabel("Your Conversations", SwingConstants.LEFT);
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        header.add(headerLabel, BorderLayout.WEST);
+        headerLabel.setBorder(BorderFactory.createEmptyBorder(0,10,0,0));
+        header.add(headerLabel, BorderLayout.CENTER);
+
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        // add conversation button
+        JButton newConButton = new JButton("New");
+        newConButton.addActionListener(e -> {
+            System.out.println("you tried to make a new conversation.");
+        });
+        buttonsPanel.add(newConButton, BorderLayout.EAST);
+
+        // logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.addActionListener(e -> {
+            System.exit(0);  // Just a placeholder to exit the application
+        });
+        buttonsPanel.add(logoutButton, BorderLayout.EAST);
+
+        // adding buttons to the header
+        header.add(buttonsPanel, BorderLayout.EAST);
+
+        // adding the header to the frame
+        add(header, BorderLayout.NORTH);
+
+        // conlistmodel
+        conListModel = new DefaultListModel<>();
+        populateConversations("001", "Recipient Name");
+        populateConversations("002", "someguy123");
+        populateConversations("020", "xXx_destroyer_xXx");
+
+        // conversation list
+        JList<JPanel> conList = new JList<>(conListModel);
+        conList.setCellRenderer(new ConversationCellRenderer());
+
+        conList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        JScrollPane scroll = new JScrollPane(conList);
+        add(scroll, BorderLayout.CENTER);
+
+        // clickable list
+        conList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+
+                }
+            }
+        });
+
+        setVisible(true);
     }
 
+    private void populateConversations(String ID, String name) {
+        // list item formatting TODO: must replace dynamic set from ClientUser
+        JPanel itemPanel = new JPanel();
+        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.LINE_AXIS));
+
+        JLabel idLabel = new JLabel("ID " + ID);
+        JLabel nameLabel = new JLabel(name);
+
+        int padding = 10;
+        idLabel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
+        nameLabel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
+
+
+        itemPanel.add(Box.createHorizontalStrut(10));
+        itemPanel.add(idLabel);
+        itemPanel.add(Box.createHorizontalStrut(40));
+        itemPanel.add(nameLabel);
+
+        conListModel.addElement(itemPanel);
+    }
+
+    private static class ConversationCellRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (value instanceof JPanel) {
+                JPanel panel = (JPanel) value;
+                if (isSelected) {
+                    panel.setBackground(Color.LIGHT_GRAY);
+                } else {
+                    panel.setBackground(Color.WHITE);
+                }
+                return panel;
+            }
+            return component;
+        }
+    }
+
+    public static void main(String[] args) {
+        new HomeView();
+    }
 }
