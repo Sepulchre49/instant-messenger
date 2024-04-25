@@ -1,7 +1,6 @@
-package Test;
+package server;
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Arrays;
@@ -13,7 +12,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.Before;
 import org.junit.Test;
 
-import server.ServerUser;
 import shared.Message;
 
 public class ServerUserTester {
@@ -36,7 +34,7 @@ public class ServerUserTester {
 	
 	@Test
 	public void testAuthentication() {
-		assertTrue(user.authenticate("Password validated"));
+		assertTrue(user.authenticate("TestPassword"));
 		assertFalse(user.authenticate("wrong password"));
 	}
 	
@@ -47,9 +45,9 @@ public class ServerUserTester {
 	}
 	@Test
 	public void testLogout() {
-		assertFalse(user.isLoggedIn());
+		assertTrue(user.isLoggedIn());
 		user.logout();
-		
+		assertFalse(user.isLoggedIn());
 	}
 	
 	@Test
@@ -60,11 +58,9 @@ public class ServerUserTester {
 	}
 	
 	@Test
-	public void testSendMessage() throws IOException {
+	public void testSendMessage() {
 		Message msg = new Message(1,null,Message.Type.TEXT,Message.Status.REQUEST,"Test Send Message");
 		user.receive(msg);
-		ObjectOutputStream out= new ObjectOutputStream(System.out);
-		user.setOutputStream(out);
 		assertEquals(1,user.getInboxCount());
 		user.deliver();
 		assertEquals(0,user.getInboxCount());
@@ -73,6 +69,7 @@ public class ServerUserTester {
 	@Test
 	public void testMessageQueue() {
 		assertEquals(0,user.getInboxCount());
+		assertEquals(1,user.getInboxCount());
 		user.deliver();
 		assertEquals(0,user.getInboxCount());
 		
@@ -91,5 +88,4 @@ public class ServerUserTester {
 		assertNull(user.getConnection());
 	}
 	
-
 }
