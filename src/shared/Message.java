@@ -28,14 +28,16 @@ public class Message implements Serializable {
     private Type type;
     private Status status;
     private String content;
+    private int conversationId; // New field to hold Conversation ID
 
-    public Message(int sender, Collection<Integer> recipients, Type t, Status s, String msg) {
+    public Message(int sender, Collection<Integer> recipients, Type t, Status s, String msg, int conversationId) {
         this.senderId = sender;
         this.receiverIds = new HashSet<>();
         this.type = t;
         this.status = s;
         this.content = msg;
         this.timestamp = new Date();
+        this.conversationId = conversationId; // Initialize Conversation ID
 
         if (recipients != null) {
             for (int id : recipients) {
@@ -66,5 +68,24 @@ public class Message implements Serializable {
 
     public String getContent() {
         return content;
+    }
+
+    public int getConversationId() {
+        return conversationId;
+    }
+    
+    public void setConversationId(int conversationId) {
+        this.conversationId = conversationId;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Type: ").append(type).append("\n");
+        sb.append("Status: ").append(status).append("\n");
+        sb.append("Sender ID: ").append(senderId).append("\n");
+        sb.append("Receiver IDs: ").append(receiverIds).append("\n");
+        sb.append("Content: ").append(content).append("\n");
+        return sb.toString();
     }
 }

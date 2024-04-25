@@ -29,12 +29,14 @@ class Session implements Runnable {
     private ObjectOutputStream out;
     private Server server;
     private ServerUser user;
+    private int conversationId; // Add conversationId field
 
-    public Session(Socket s, Server server) throws IOException {
+    public Session(Socket s, Server server, int conversationId) throws IOException {
         this.server = server;
         client = s;
         clientAddress = client.getInetAddress().getHostAddress();
         System.out.println("Connection created with " + clientAddress);
+        this.conversationId = conversationId; // Initialize conversationId
 
         try {
             in = new ObjectInputStream(client.getInputStream());
@@ -76,7 +78,8 @@ class Session implements Runnable {
                     null,
                     Message.Type.LOGIN, 
                     Message.Status.FAILURE, 
-                    "Failed to log in!");
+                    "Failed to log in!",
+                    conversationId);
 
         if (matcher.find()) {
             String username = matcher.group(1);
@@ -90,7 +93,8 @@ class Session implements Runnable {
                         null,
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
-                        "Successfully logged in!");
+                        "Successfully logged in!",
+                        conversationId);
                 success = true;
                 user.setOutputStream(out);
             }
@@ -117,7 +121,8 @@ class Session implements Runnable {
                             null,
                             Message.Type.LOGIN, 
                             Message.Status.FAILURE, 
-                            "Nu uh uh"));
+                            "Nu uh uh",
+                            conversationId));
             }
         } catch (IOException e) {
             System.err.println("Error trying to write login failure message to " + client);
@@ -137,7 +142,8 @@ class Session implements Runnable {
                             new ArrayList<>(user.getUserId()),
                             Message.Type.LOGOUT, 
                             Message.Status.SUCCESS, 
-                            "You have been logged out of the server."));
+                            "You have been logged out of the server.",
+                            conversationId));
             }
             System.out.println("Successfully logged out client " + clientAddress);
         } catch (IOException e) {
@@ -155,7 +161,8 @@ class Session implements Runnable {
                             new ArrayList<>(user.getUserId()),
                             Message.Type.LOGOUT,
                             Message.Status.SUCCESS,
-                            "Terminating connection"));
+                            "Terminating connection",
+                            conversationId));
             }
         } catch (IOException e) {
             System.out.println("Error sending termination message. Proceeding with termination.");
@@ -171,6 +178,8 @@ class Session implements Runnable {
     }
 
     private void handleText(Message m) {
+        // Add conversationId to the message before forwarding
+        m.setConversationId(conversationId);
         server.forward(m);
         try {
             synchronized (out) {
@@ -179,7 +188,8 @@ class Session implements Runnable {
                         new ArrayList<>(user.getUserId()),
                         Message.Type.TEXT,
                         Message.Status.RECEIVED,
-                        "Message received."));
+                        "Message received.",
+                        conversationId));
             }
         } catch (IOException e) {
             System.err.println("Error sending message received acknowledgement to " + clientAddress);

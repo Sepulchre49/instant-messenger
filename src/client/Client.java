@@ -39,7 +39,7 @@ public class Client {
             System.out.println("Password: ");
             String pass = scanner.nextLine();
 
-            success = login(user,pass);
+            success = login(user, pass);
             --attempts;
         }
 
@@ -61,22 +61,21 @@ public class Client {
                 if (in.equals("logout")) {
                     System.out.println("Logging out...");
 
-
                     if (logout()) {
                         System.out.println("(Client) Successfully logged out.");
                     } else {
                         System.out.println("Error logging out.");
                     }
                     quit = true;
+                    System.exit(0);
                 } else {
                     sendMessage(new Message(
-                            0,
-                            new ArrayList<>() {{
-                                add(1); // TODO : Hardcoded value. Must be replaced with actual recipient.
-                            }},
+                            user.getUserId(),
+                            null,
                             Message.Type.TEXT,
                             Message.Status.REQUEST,
-                            in));
+                            in,
+                            user.getConversationId())); // Pass conversationId
                 }
             } while (!quit);
         }
@@ -100,27 +99,41 @@ public class Client {
                 null,
                 Message.Type.LOGIN,
                 Message.Status.REQUEST,
-                String.format("username: %s password: %s", username, password));
+                String.format("username: %s password: %s", username, password),
+                -1);
 
         write.writeObject(m);
         Message res = (Message) read.readObject();
-        return res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS;
+        if (res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS) {
+            user.setUserId(res.getSenderId());
+            user.setConversationId(res.getConversationId());
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
-        boolean success = false;
-        Message response;
         Message m = new Message(
                 user.getUserId(),
                 null,
                 Message.Type.LOGOUT,
                 Message.Status.REQUEST,
-                "Logging out!");
+                "Logging out!",
+                user.getConversationId());
 
         write.writeObject(m);
+        write.flush();
         Message res = (Message) read.readObject();
-        return res.getType() == Message.Type.LOGOUT && res.getStatus() == Message.Status.SUCCESS;
+        if (res.getType() == Message.Type.LOGOUT && res.getStatus() == Message.Status.SUCCESS) {
+            System.out.println("(Client) Successfully logged out.");
+            return true;
+        } else {
+            System.out.println("Error logging out.");
+            return false;
+        }
     }
+
 
     public void viewConversation(int conversationID) {
 
@@ -145,18 +158,20 @@ public class Client {
 
         @Override
         public void run() {
-            while (!quit) {
-                try {
+            try {
+                while (!quit) {
                     Message message = (Message) read.readObject();
-                    in.add(message);
-                    System.out.println(message.getContent());
-
-                } catch (IOException | ClassNotFoundException e) {
-                    if (!quit) {
-                        System.out.println("Error in InQueue: " + e.getMessage());
-                        quit = true;
+                    if (message != null) {
+                        in.add(message);
+                        System.out.println(message.getContent());
                     }
                 }
+            } catch (IOException | ClassNotFoundException e) {
+                if (!quit) {
+                    System.out.println("Error in InQueue: " + e.getMessage());
+                }
+            } finally {
+                quit(); // Ensure cleanup when the thread exits
             }
         }
 
@@ -168,12 +183,16 @@ public class Client {
             quit = true;
             Thread.currentThread().interrupt();
             try {
-                read.close();
+            	if(read != null)
+            	{
+            		read.close();
+            	}
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
 
     private static class OutQueue implements Runnable {
         public static BlockingQueue<Message> out = new LinkedBlockingQueue<>();

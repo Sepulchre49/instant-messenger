@@ -1,4 +1,5 @@
 package client;
+
 import java.util.Set;
 
 import server.Conversation;
@@ -7,7 +8,8 @@ import shared.Message;
 public class ClientUser {
     private int userId;
     private String username;
-    private Set<Conversation> convrsations;
+    private int conversationId; // New attribute
+    private Set<Conversation> conversations;
 
     public ClientUser() {
 
@@ -20,6 +22,10 @@ public class ClientUser {
     
     public int getUserId() {
         return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
     
     public String getUsername() {
@@ -37,10 +43,17 @@ public class ClientUser {
     public void logout() {
             
     }
-    
+
+    public int getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(int conversationId) {
+        this.conversationId = conversationId;
+    }
+
     public void loadConversation() {
             
     }
 
 }
-

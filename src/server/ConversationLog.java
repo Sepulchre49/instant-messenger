@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -50,7 +51,8 @@ public class ConversationLog {
         this.messages.remove(message);
     }
 
-    public void writeLogToFile(String filename) {
+    public void writeLogToFile(File file) {
+        String filename = file.getAbsolutePath(); // Convert File object to string path
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true));
             
@@ -73,4 +75,6 @@ public class ConversationLog {
             e.printStackTrace();
         }
     }
+
+
 }
