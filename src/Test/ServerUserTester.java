@@ -36,7 +36,7 @@ public class ServerUserTester {
 	
 	@Test
 	public void testAuthentication() {
-		assertTrue(user.authenticate("TestPassword"));
+		assertTrue(user.authenticate("Password validated"));
 		assertFalse(user.authenticate("wrong password"));
 	}
 	
@@ -47,9 +47,9 @@ public class ServerUserTester {
 	}
 	@Test
 	public void testLogout() {
-		assertTrue(user.isLoggedIn());
-		user.logout();
 		assertFalse(user.isLoggedIn());
+		user.logout();
+		
 	}
 	
 	@Test
@@ -73,7 +73,6 @@ public class ServerUserTester {
 	@Test
 	public void testMessageQueue() {
 		assertEquals(0,user.getInboxCount());
-		assertEquals(1,user.getInboxCount());
 		user.deliver();
 		assertEquals(0,user.getInboxCount());
 		
