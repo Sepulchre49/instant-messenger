@@ -10,6 +10,7 @@ public class GUI {
     public final Client client;
     private final LoginView loginView;
     public ConversationView conversationView;
+    public HomeView homeView;
 
     public GUI(Client client) {
         this.client = client;
@@ -28,7 +29,7 @@ public class GUI {
             inThread.start();
 
             System.out.println("Successfully logged in.");
-            showConversationView();
+            showHomeView(this);
         } else {
             JOptionPane.showMessageDialog(null,
                     "Login Failed",
@@ -49,12 +50,25 @@ public class GUI {
         }
     }
 
-    public void showConversationView(){
-        loginView.setVisible(false);
-        loginView.dispose();
+    public void showConversationView(int ID){
 
-        conversationView = new ConversationView(this);
+
+        conversationView = new ConversationView(this, ID);
         conversationView.setVisible(true);
+    }
+
+    public void showHomeView(GUI gui){
+        if (loginView != null) {
+            loginView.setVisible(false);
+            loginView.dispose();
+        }
+
+        if (conversationView != null) {
+            conversationView.setVisible(false);
+        }
+
+        homeView = new HomeView(gui);
+        homeView.setVisible(true);
     }
 
     public void updateChatArea(Message message){
@@ -78,6 +92,5 @@ public class GUI {
                 Client.gui = new GUI(client);
             }
         });
-
     }
 }

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 
 public class ConversationView extends JFrame {
     private final GUI gui;
+    private int recipientID;
     public JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
@@ -19,11 +20,13 @@ public class ConversationView extends JFrame {
     private JScrollPane scrollPane;
     private JLabel recipientLabel;
 
-    public ConversationView(GUI gui) {
+    public ConversationView(GUI gui, int ID) {
         // main frame
         super("Conversation");
 
         this.gui = gui;
+        this.recipientID = ID;
+
         setSize(625, 575);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());

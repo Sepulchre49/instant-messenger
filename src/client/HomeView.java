@@ -4,15 +4,16 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.io.IOException;
 
 public class HomeView extends JFrame {
-//    private final GUI gui;
+    private final GUI gui;
     public DefaultListModel<JPanel> conListModel;
 
-    public HomeView(){
+    public HomeView(GUI gui){
         super("Home");
 
-//        this.gui = gui;
+        this.gui = gui;
 
         setSize(625, 575);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -36,14 +37,19 @@ public class HomeView extends JFrame {
         // add conversation button
         JButton newConButton = new JButton("New");
         newConButton.addActionListener(e -> {
-            System.out.println("you tried to make a new conversation.");
+            newConversation();
         });
         buttonsPanel.add(newConButton, BorderLayout.EAST);
 
         // logout button
         JButton logoutButton = new JButton("Logout");
         logoutButton.addActionListener(e -> {
-            System.exit(0);  // Just a placeholder to exit the application
+            try {
+                logout();
+            } catch (IOException | ClassNotFoundException ex) {
+                System.out.println("Error logging out through the GUI");
+                throw new RuntimeException(ex);
+            }
         });
         buttonsPanel.add(logoutButton, BorderLayout.EAST);
 
@@ -72,12 +78,20 @@ public class HomeView extends JFrame {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
-
+                    System.out.println(conList.getSelectedIndex());
                 }
             }
         });
 
         setVisible(true);
+    }
+
+    private void logout() throws IOException, ClassNotFoundException {
+        gui.client.logout();
+        System.exit(1);
+    }
+
+    private void newConversation() {
     }
 
     private void populateConversations(String ID, String name) {
@@ -116,9 +130,5 @@ public class HomeView extends JFrame {
             }
             return component;
         }
-    }
-
-    public static void main(String[] args) {
-        new HomeView();
     }
 }
