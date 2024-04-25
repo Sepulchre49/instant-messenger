@@ -20,8 +20,10 @@ public class Client {
     public ObjectOutputStream write;
 
     private final ClientUser user = new ClientUser();
+    public static GUI gui;
 
     public Client() {
+        gui = null;
         this.host = "127.0.0.1";
         this.port = 3000;
 
@@ -148,7 +150,12 @@ public class Client {
                 try {
                     Message message = (Message) read.readObject();
                     in.add(message);
-                    System.out.println(message.getContent());
+
+                    if(gui == null) {
+                        System.out.println(message.getContent());
+                    } else{
+                        gui.updateChatArea(message);
+                    }
 
                 } catch (IOException | ClassNotFoundException e) {
                     if (!quit) {

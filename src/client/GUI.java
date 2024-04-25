@@ -1,5 +1,7 @@
 package client;
 
+import shared.Message;
+
 import javax.swing.*;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -32,12 +34,28 @@ public class GUI {
         }
     }
 
+    public void logoutResult(boolean success) throws IOException {
+        if(success){
+            conversationView.setVisible(false);
+            System.exit(1);
+        } else {
+            JOptionPane.showMessageDialog(null, "Logout Failed", "Logout Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     public void showConversationView(){
         loginView.setVisible(false);
         loginView.dispose();
 
         conversationView = new ConversationView(this);
         conversationView.setVisible(true);
+    }
+
+    public void updateChatArea(Message message){
+        if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.SUCCESS){
+            conversationView.chatArea.append(message.getContent());
+        }
+        conversationView.chatArea.append(message.getContent());
     }
 
     public static void main(String[] args){
@@ -52,7 +70,7 @@ public class GUI {
                     System.exit(1);
                 }
 
-                new GUI(client);
+                client.gui = new GUI(client);
             }
         });
 
