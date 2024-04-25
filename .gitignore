@@ -1,6 +1,8 @@
 bin/
 dist/
 
+# Conversation logs:
+*log.txt
 # User database
 users.txt
 
