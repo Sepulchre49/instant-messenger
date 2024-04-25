@@ -118,4 +118,8 @@ public class ConversationView extends JFrame {
             messageField.setText("");
         }
     }
+
+    private void updateList(Message message){
+
+    }
 }
