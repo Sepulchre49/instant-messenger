@@ -15,8 +15,17 @@ public class GUI {
         loginView.setVisible(true);
     }
 
-    public void loginResult(boolean success) {
+    public void loginResult(boolean success) throws IOException {
         if (success) {
+            Client.OutQueue outQueue = new Client.OutQueue(client.write);
+            Thread outThread = new Thread(outQueue);
+            outThread.start();
+
+            Client.InQueue inQueue = new Client.InQueue(client.read);
+            Thread inThread = new Thread(inQueue);
+            inThread.start();
+
+            System.out.println("Successfully logged in.");
             showConversationView();
         } else {
             JOptionPane.showMessageDialog(null, "Login Failed", "Login Error", JOptionPane.ERROR_MESSAGE);
@@ -44,7 +53,6 @@ public class GUI {
                 }
 
                 new GUI(client);
-
             }
         });
 
