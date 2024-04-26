@@ -16,10 +16,10 @@ public class ITUser extends ServerUser {
 	}
 
 	public void snoop(Conversation conversation) {
-		/*System.out.println("Snooping conversation...");
-		for(conversation.getConversation()) {
+		System.out.println("Snooping conversation...");
+		for(conversation.getAllMsgs();;) {
 			System.out.println(conversation);
-		}*/
+		}
 	}
 
 }
