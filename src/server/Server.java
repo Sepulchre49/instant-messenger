@@ -5,11 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -147,7 +143,7 @@ public class Server {
     private void log(Message msg) {
         // Get relevant message details
         int senderID = msg.getSenderId();
-        Set<Integer> receiverIDs = msg.getReceiverIds();
+        ArrayList<Integer> receiverIDs = msg.getReceiverIds();
         int messageID = msg.hashCode(); // Generate a unique ID for each message
         int conversationID = -1; // Might need to add conversation id in msg class itself.......
 

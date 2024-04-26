@@ -21,7 +21,7 @@ public class Client {
     private InQueue inbound;
     private OutQueue outbound;
 
-    private final ClientUser user = new ClientUser();
+    private ClientUser user;
     public static GUI gui;
 
     public Client() {
@@ -108,6 +108,7 @@ public class Client {
         Message res = (Message) read.readObject();
         boolean success = res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS;
         if (success) {
+            user = new ClientUser(res.getReceiverIds().get(0), username);
             outbound = new OutQueue(write);
             Thread outThread = new Thread(outbound);
             outThread.start();
