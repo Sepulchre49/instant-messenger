@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Client {
     private String host;
@@ -21,6 +23,8 @@ public class Client {
     private InQueue inbound;
     private OutQueue outbound;
 
+    private Map<String, Integer> usernameIdMap;
+
     private ClientUser user;
     public static GUI gui;
 
@@ -28,6 +32,8 @@ public class Client {
         gui = null;
         this.host = "127.0.0.1";
         this.port = 3000;
+
+        usernameIdMap = new HashMap<>(); //new
 
         scanner = new Scanner(System.in);
     }
@@ -109,6 +115,9 @@ public class Client {
         boolean success = res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS;
         if (success) {
             user = new ClientUser(res.getReceiverIds().get(0), username);
+            decodeAndStoreUsernames(res.getContent());
+            System.out.println("Login successful");
+
             outbound = new OutQueue(write);
             Thread outThread = new Thread(outbound);
             outThread.start();
@@ -118,6 +127,18 @@ public class Client {
             inThread.start();
         }
         return success;
+    }
+
+    public void decodeAndStoreUsernames(String content) { //new
+    	String[] usernameIdpairs = content.split("\\n");
+    	for(String pair : usernameIdpairs) {
+    		String[] usernameIdData = pair.split(":");
+    		if(usernameIdData.length == 2) {
+    			String username = usernameIdData[0];
+    			int id = Integer.parseInt(usernameIdData[1]);
+    			usernameIdMap.put(username, id);
+    		}
+    	}
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
