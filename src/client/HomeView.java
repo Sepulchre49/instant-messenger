@@ -79,6 +79,7 @@ public class HomeView extends JFrame {
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
                     System.out.println(conList.getSelectedIndex());
+                    gui.showConversationView(-1); // TODO : Replace with real dynamic ID
                 }
             }
         });

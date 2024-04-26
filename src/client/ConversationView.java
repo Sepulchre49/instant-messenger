@@ -46,7 +46,7 @@ public class ConversationView extends JFrame {
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("you went backwards");
+                gui.showHomeView(gui);
             }
         });
         header.add(backButton, BorderLayout.WEST);

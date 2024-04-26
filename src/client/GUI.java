@@ -51,6 +51,9 @@ public class GUI {
     }
 
     public void showConversationView(int ID){
+        if (homeView != null){
+            homeView.setVisible(false);
+        }
 
 
         conversationView = new ConversationView(this, ID);
