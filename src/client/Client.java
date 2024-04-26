@@ -18,6 +18,8 @@ public class Client {
     private Scanner scanner;
     public ObjectInputStream read;
     public ObjectOutputStream write;
+    private InQueue inbound;
+    private OutQueue outbound;
 
     private final ClientUser user = new ClientUser();
     public static GUI gui;
@@ -62,7 +64,6 @@ public class Client {
                 if (in.equals("logout")) {
                     System.out.println("Logging out...");
 
-
                     if (logout()) {
                         System.out.println("(Client) Successfully logged out.");
                     } else {
@@ -105,8 +106,17 @@ public class Client {
 
         write.writeObject(m);
         Message res = (Message) read.readObject();
-        System.out.println(res.getContent());
-        return res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS;
+        boolean success = res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS;
+        if (success) {
+            outbound = new OutQueue(write);
+            Thread outThread = new Thread(outbound);
+            outThread.start();
+
+            inbound = new InQueue(read);
+            Thread inThread = new Thread(inbound);
+            inThread.start();
+        }
+        return success;
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
@@ -122,8 +132,23 @@ public class Client {
         write.writeObject(m);
         // TODO: This throws a StreamCorruptionException: invalid type code: FF
         // Doesnt affect usage because it happens after logout phase, but would like to fix this in the future
-        Message res = (Message) read.readObject();
-        return res.getType() == Message.Type.LOGOUT && res.getStatus() == Message.Status.SUCCESS;
+        //Message res = (Message) read.readObject();
+
+        do {
+            if (!inbound.in.isEmpty()) {
+                Message res = inbound.in.poll();
+
+                if (res.getType() == Message.Type.LOGOUT && res.getStatus() == Message.Status.SUCCESS) {
+                    System.out.println("Successfully logged out!");
+                    outbound.quit();
+                    inbound.quit();
+                    success = true;
+                } else {
+                    inbound.in.add(res);
+                }
+            }
+        } while (!success);
+        return success;
     }
 
     public void viewConversation(int conversationID) {
@@ -131,15 +156,15 @@ public class Client {
     }
 
     public void sendMessage(Message message) throws IOException, ClassNotFoundException {
-        OutQueue.out.add(message);
+        outbound.out.add(message);
     }
 
     public void receiveMessage(Message message) {
 
     }
 
-    static class InQueue implements Runnable {
-        public static Queue<Message> in = new ConcurrentLinkedQueue<>();
+    class InQueue implements Runnable {
+        public Queue<Message> in = new ConcurrentLinkedQueue<>();
         private final ObjectInputStream read;
         private volatile boolean quit = false;
 
@@ -184,8 +209,8 @@ public class Client {
         }
     }
 
-    static class OutQueue implements Runnable {
-        public static BlockingQueue<Message> out = new LinkedBlockingQueue<>();
+    class OutQueue implements Runnable {
+        public BlockingQueue<Message> out = new LinkedBlockingQueue<>();
         private final ObjectOutputStream write;
         private volatile boolean quit = false;
 
