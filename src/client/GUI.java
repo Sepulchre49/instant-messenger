@@ -10,6 +10,7 @@ public class GUI {
     public final Client client;
     private final LoginView loginView;
     public ConversationView conversationView;
+    public HomeView homeView;
 
     public GUI(Client client) {
         this.client = client;
@@ -20,9 +21,12 @@ public class GUI {
     public void loginResult(boolean success) throws IOException {
         if (success) {
             System.out.println("Successfully logged in.");
-            showConversationView();
+            showHomeView(this);
         } else {
-            JOptionPane.showMessageDialog(null, "Login Failed", "Login Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Login Failed",
+                    "Login Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -31,23 +35,41 @@ public class GUI {
             conversationView.setVisible(false);
             System.exit(0);
         } else {
-            JOptionPane.showMessageDialog(null, "Logout Failed", "Logout Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Logout Failed",
+                    "Logout Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    public void showConversationView(){
-        loginView.setVisible(false);
-        loginView.dispose();
+    public void showConversationView(int ID){
+        if (homeView != null){
+            homeView.setVisible(false);
+        }
 
-        conversationView = new ConversationView(this);
+
+        conversationView = new ConversationView(this, ID);
         conversationView.setVisible(true);
+    }
+
+    public void showHomeView(GUI gui){
+        if (loginView != null) {
+            loginView.setVisible(false);
+            loginView.dispose();
+        }
+
+        if (conversationView != null) {
+            conversationView.setVisible(false);
+        }
+
+        homeView = new HomeView(gui);
+        homeView.setVisible(true);
     }
 
     public void updateChatArea(Message message){
         if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.SUCCESS){
-            conversationView.chatArea.append(message.getContent());
+            conversationView.chatArea.append( "[Recipient]: " + message.getContent() + "\n");
         }
-        conversationView.chatArea.append(message.getContent());
     }
 
     public static void main(String[] args){
@@ -62,9 +84,8 @@ public class GUI {
                     System.exit(1);
                 }
 
-                client.gui = new GUI(client);
+                Client.gui = new GUI(client);
             }
         });
-
     }
 }

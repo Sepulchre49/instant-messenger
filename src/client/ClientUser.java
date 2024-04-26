@@ -7,7 +7,7 @@ import shared.Message;
 public class ClientUser {
     private int userId;
     private String username;
-    private Set<Conversation> convrsations;
+    private Set<Conversation> conversations;
 
     public ClientUser() {
 
