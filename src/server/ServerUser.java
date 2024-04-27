@@ -50,7 +50,7 @@ public class ServerUser {
 
     public void deliver() {
         Message m = messageQueue.poll();
-        if (m != null) {
+        if (m != null && out != null) {
             try {
                 synchronized (out) {
                     out.writeObject(m);
