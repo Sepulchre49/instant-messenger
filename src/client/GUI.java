@@ -21,7 +21,7 @@ public class GUI {
     public void loginResult(boolean success) throws IOException {
         if (success) {
             System.out.println("Successfully logged in.");
-            showHomeView(this);
+            showHomeView();
         } else {
             JOptionPane.showMessageDialog(null,
                     "Login Failed",
@@ -31,7 +31,7 @@ public class GUI {
     }
 
     public void logoutResult(boolean success) throws IOException {
-        if(success){
+        if (success) {
             conversationView.setVisible(false);
             System.exit(0);
         } else {
@@ -42,17 +42,17 @@ public class GUI {
         }
     }
 
-    public void showConversationView(int ID){
-        if (homeView != null){
+    public void showConversationView(int ID, String rName) {
+        if (homeView != null) {
             homeView.setVisible(false);
         }
 
 
-        conversationView = new ConversationView(this, ID);
+        conversationView = new ConversationView(this, ID, rName);
         conversationView.setVisible(true);
     }
 
-    public void showHomeView(GUI gui){
+    public void showHomeView() {
         if (loginView != null) {
             loginView.setVisible(false);
             loginView.dispose();
@@ -62,17 +62,17 @@ public class GUI {
             conversationView.setVisible(false);
         }
 
-        homeView = new HomeView(gui);
+        homeView = new HomeView(this);
         homeView.setVisible(true);
     }
 
-    public void updateChatArea(Message message){
-        if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.SUCCESS){
-            conversationView.chatArea.append( "[Recipient]: " + message.getContent() + "\n");
+    public void updateChatArea(Message message) {
+        if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.SUCCESS) {
+            conversationView.chatArea.append("[Recipient]: " + message.getContent() + "\n");
         }
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 Client client = new Client();

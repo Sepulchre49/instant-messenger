@@ -23,9 +23,9 @@ public class Client {
     private InQueue inbound;
     private OutQueue outbound;
 
-    private Map<String, Integer> usernameIdMap;
+    public Map<Integer,String> usernameIdMap;
 
-    private ClientUser user;
+    public ClientUser user;
     public static GUI gui;
 
     public Client() {
@@ -130,13 +130,13 @@ public class Client {
     }
 
     public void decodeAndStoreUsernames(String content) { //new
-    	String[] usernameIdpairs = content.split("\\n");
-    	for(String pair : usernameIdpairs) {
-    		String[] usernameIdData = pair.split(":");
+    	String[] usernameIdPairs = content.split("\\n");
+    	for(String pair : usernameIdPairs) {
+    		String[] usernameIdData = pair.split(" ");
     		if(usernameIdData.length == 2) {
-    			String username = usernameIdData[0];
-    			int id = Integer.parseInt(usernameIdData[1]);
-    			usernameIdMap.put(username, id);
+    			String username = usernameIdData[1];
+    			int id = Integer.parseInt(usernameIdData[0]);
+    			usernameIdMap.put(id, username);
     		}
     	}
     }

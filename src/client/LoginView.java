@@ -42,13 +42,10 @@ public class LoginView extends JFrame implements ActionListener {
         panel.add(new JLabel()); // Spacer
         panel.add(loginButton);
 
-        // Add action listener to the button
         loginButton.addActionListener(this);
 
-        // "Enter" button functionality
         getRootPane().setDefaultButton(loginButton);
 
-        // Show the frame
         setVisible(true);
     }
 

@@ -8,11 +8,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 public class ConversationView extends JFrame {
     private final GUI gui;
     private int recipientID;
+    private String recipientName;
     public JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
@@ -20,12 +22,13 @@ public class ConversationView extends JFrame {
     private JScrollPane scrollPane;
     private JLabel recipientLabel;
 
-    public ConversationView(GUI gui, int ID) {
+    public ConversationView(GUI gui, int ID, String rName) {
         // main frame
         super("Conversation");
 
         this.gui = gui;
         this.recipientID = ID;
+        this.recipientName = rName;
 
         setSize(625, 575);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -38,7 +41,7 @@ public class ConversationView extends JFrame {
 
         // back button
         ImageIcon backIcon = new ImageIcon("client/icons/back.png");
-        Image scaledBackImage = backIcon.getImage().getScaledInstance(25,25,Image.SCALE_SMOOTH);
+        Image scaledBackImage = backIcon.getImage().getScaledInstance(25, 25, Image.SCALE_SMOOTH);
         ImageIcon scaledBackIcon = new ImageIcon(scaledBackImage);
         backButton = new JButton(scaledBackIcon);
         backButton.setPreferredSize(new Dimension(25, 25));
@@ -46,13 +49,14 @@ public class ConversationView extends JFrame {
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                gui.showHomeView(gui);
+                gui.showHomeView();
             }
         });
         header.add(backButton, BorderLayout.WEST);
 
         // CID :: Recipient's name
-        recipientLabel = new JLabel("[CID] [Recipient (s)]", SwingConstants.LEFT);
+        recipientLabel = new JLabel(String.format("[UID%s] %s", recipientID, recipientName), SwingConstants.LEFT);
+        recipientLabel.setFont(new Font("Arial", Font.BOLD, 15));
         recipientLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         header.add(recipientLabel, BorderLayout.CENTER);
 
@@ -98,32 +102,39 @@ public class ConversationView extends JFrame {
 
         // opening message
         chatArea.setForeground(Color.gray);
-        chatArea.append("System: Enter a message, or type '/quit' to quit\n");
+        chatArea.append(String.format("[System] You can now send messages to %s.\n", recipientName));
         chatArea.setForeground(Color.black);
     }
 
     private void sendMessage() throws IOException, ClassNotFoundException {
-        // Get the text from the message field
         String message = messageField.getText().trim();
 
-        if (message.equals("/quit")){
+        if (message.equals("/quit")) {
             gui.logoutResult(gui.client.logout());
             return;
         }
 
-        if (!message.isEmpty()) {
-            // Append the message to the chat area
-            gui.client.sendMessage(new Message(
-                    0,
-                    new ArrayList<>() {{
-                        add(1); // TODO : Hardcoded value. Must be replaced with actual recipient.
-                    }},
-                    Message.Type.TEXT,
-                    Message.Status.REQUEST,
-                    message
-            ));
+        Message m = new Message(
+                0,
+                new ArrayList<>() {{
+                    add(recipientID);
+                }},
+                Message.Type.TEXT,
+                Message.Status.REQUEST,
+                message
+        );
 
-            chatArea.append("[User]: " + message + "\n");
+        if (!message.isEmpty()) {
+            gui.client.sendMessage(m);
+            String timestamp = m.getTimestamp().toString();  // Assuming it returns the string directly without the brackets
+            String[] parts = timestamp.split(" "); // Split by space
+            String truncatedTimestamp = parts[0] + " " + parts[1] + " " + parts[2] + " " + parts[3];
+
+            chatArea.append(String.format("[%s] [UID%s] %s: %s\n",
+                    truncatedTimestamp,
+                    gui.client.user.getUserId(),
+                    gui.client.user.getUsername(),
+                    message));
 
             // Clear the message field
             messageField.setText("");
