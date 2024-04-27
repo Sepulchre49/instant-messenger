@@ -41,12 +41,11 @@ public class ServerUser {
         Message m = messageQueue.poll();
         if (m != null) {
             try {
-                System.out.println("Delivering message");
                 synchronized (out) {
                     out.writeObject(m);
                     out.flush();
                 }
-                System.out.println("Delivered message");
+                System.out.println("Message delivered.");
             } catch (IOException e) {
                 System.err.println("Failed delivering message to user " + userId);
                 e.printStackTrace();

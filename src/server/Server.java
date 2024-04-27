@@ -184,7 +184,7 @@ public class Server {
                 for (int id : activeUsers) {
                     ServerUser user = users.get(id);
                     if (user != null && user.getInboxCount() > 0) {
-                        System.out.println("Delivering message to user " + user.getUsername());
+                        System.out.println("Delivering message to " + user.getUsername());
                         user.deliver();
                     }
                 }
