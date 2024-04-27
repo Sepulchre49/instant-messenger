@@ -3,21 +3,15 @@ package client;
 import shared.Message;
 
 import javax.swing.*;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 
 public class ConversationView extends JFrame {
     private final GUI gui;
-    private int recipientID;
-    private String recipientName;
     public JTextArea chatArea;
 //    public JTextPane chatArea;
 
@@ -27,15 +21,15 @@ public class ConversationView extends JFrame {
     private JButton sendButton;
 
     private JScrollPane scrollPane;
-    private JLabel recipientLabel;
+    private JLabel conversationLabel;
+    private Conversation conversation;
 
-    public ConversationView(GUI gui, int ID, String rName) {
+    public ConversationView(GUI gui, Conversation conversation) {
         // main frame
         super("Conversation");
 
         this.gui = gui;
-        this.recipientID = ID;
-        this.recipientName = rName;
+        this.conversation = conversation;
 
         setSize(625, 575);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -62,10 +56,10 @@ public class ConversationView extends JFrame {
         header.add(backButton, BorderLayout.WEST);
 
         // CID :: Recipient's name
-        recipientLabel = new JLabel(String.format("[UID%s] %s", recipientID, recipientName), SwingConstants.LEFT);
-        recipientLabel.setFont(new Font("Arial", Font.BOLD, 15));
-        recipientLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        header.add(recipientLabel, BorderLayout.CENTER);
+        conversationLabel = new JLabel(String.format("[Conversation: %d]", conversation.getId()), SwingConstants.LEFT);
+        conversationLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        conversationLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        header.add(conversationLabel, BorderLayout.CENTER);
 
         // collation of header
         add(header, BorderLayout.NORTH);
@@ -129,7 +123,7 @@ public class ConversationView extends JFrame {
 
         // opening message
         chatArea.setForeground(Color.gray);
-        chatArea.append(String.format("[System] You can now send messages to %s.\n", recipientName));
+        chatArea.append("[System] You can now send messages.\n");
         chatArea.setForeground(Color.black);
     }
 
@@ -143,13 +137,11 @@ public class ConversationView extends JFrame {
 
         Message m = new Message(
                 gui.client.user.getUserId(),
-                new ArrayList<>() {{ // TODO : need to correct this to accomodate groupchats
-                    add(recipientID);
-                }},
+                new ArrayList<>(conversation.getParticipants()),
                 Message.Type.TEXT,
                 Message.Status.REQUEST,
                 message,
-                -1 // ConversationId: fix this when the conversation endpoint is up
+                conversation.getId()
         );
 
         if (!message.isEmpty()) {

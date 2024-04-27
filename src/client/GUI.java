@@ -45,13 +45,13 @@ public class GUI {
         }
     }
 
-    public void showConversationView(int ID, String rName) {
+    public void showConversationView(int convoId, String rName) {
         if (homeView != null) {
             homeView.setVisible(false);
         }
 
 
-        conversationView = new ConversationView(this, ID, rName);
+        conversationView = new ConversationView(this, client.getConversation(convoId));
         conversationView.setVisible(true);
     }
 

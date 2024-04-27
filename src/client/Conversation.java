@@ -1,0 +1,38 @@
+package client;
+
+import shared.Message;
+
+import java.util.*;
+
+public class Conversation {
+    private final int id;
+    private final Set<Integer> participants;
+    private ArrayList<Message> messages;
+
+    public Conversation(int id, Set<Integer> participants) {
+        this.id = id;
+        this.participants = participants;
+        this.messages = new ArrayList<>();
+    }
+    public Conversation(int id, Set<Integer> participants, ArrayList<Message> messages) {
+        this.id = id;
+        this.participants = participants;
+        this.messages = messages;
+    }
+
+    public void addMessage(Message m) {
+        messages.add(m);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public ArrayList<Message> getMessages() {
+        return messages;
+    }
+
+    public Set<Integer> getParticipants() {
+        return participants;
+    }
+}

@@ -24,7 +24,9 @@ public class Client {
     private OutQueue outbound;
 
     public Map<Integer,String> usernameIdMap;
-    private Map<Integer, Set<Integer>> conversationMap;
+
+
+    private Map<Integer, Conversation> conversationMap;
 
     public ClientUser user;
     public static GUI gui;
@@ -34,7 +36,8 @@ public class Client {
         this.host = "127.0.0.1";
         this.port = 3000;
 
-        usernameIdMap = new HashMap<>(); //new
+        usernameIdMap = new HashMap<>();
+        conversationMap = new HashMap<>();
 
         scanner = new Scanner(System.in);
     }
@@ -90,10 +93,13 @@ public class Client {
         for (String line : content.lines().toList()) {
             Matcher conversationMatch = conversationPattern.matcher(line);
             Matcher userMatch = userPattern.matcher(line);
+
             if (conversationMatch.matches()) {
                 int conversationId = Integer.parseInt(conversationMatch.group(1));
-                Set<Integer> participants = Arrays.stream(conversationMatch.group(2).split("\\s+")).map(Integer::parseInt).collect(Collectors.toSet());
-                conversationMap.put(conversationId, participants);
+                Set<Integer> participants = Arrays.stream(conversationMatch.group(2).split("\\s+"))
+                        .map(Integer::parseInt)
+                        .collect(Collectors.toSet());
+                conversationMap.put(conversationId, new Conversation(conversationId, participants));
                 System.out.printf("Adding conversation %d\n", conversationId);
             } else if (userMatch.matches()) {
                 int userId = Integer.parseInt(userMatch.group(1));
@@ -132,6 +138,14 @@ public class Client {
             }
         } while (!success);
         return success;
+    }
+
+    public Conversation getConversation(int id) {
+        return conversationMap.get(id);
+    }
+
+    public Collection<Conversation> getConversations() {
+        return conversationMap.values();
     }
 
     public void viewConversation(int conversationID) {

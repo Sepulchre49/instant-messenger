@@ -1,7 +1,5 @@
 package client;
 
-import server.Conversation;
-
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -67,8 +65,8 @@ public class HomeView extends JFrame {
 
         // conlistmodel and population
         conListModel = new DefaultListModel<>();
-        for(Map.Entry<Integer, String> entry : gui.client.usernameIdMap.entrySet()){ // TODO : replace when conversations are initialized
-            populateConversations(entry.getKey(), entry.getValue());
+        for (Conversation conversation : gui.client.getConversations()) {
+            populateConversations(conversation.getId());
         }
 
         // conversation list
@@ -110,13 +108,13 @@ public class HomeView extends JFrame {
         System.exit(1);
     }
 
-    private void populateConversations(Integer ID, String name) {
+    private void populateConversations(int conversationId) {
         // list item formatting TODO: must replace dynamic set from ClientUser
         JPanel itemPanel = new JPanel();
         itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.LINE_AXIS));
 
-        JLabel idLabel = new JLabel("ID " + ID);
-        JLabel nameLabel = new JLabel(name);
+        JLabel idLabel = new JLabel("ID " + conversationId);
+        JLabel nameLabel = new JLabel("Usernames go here"); // TODO: Add usernames of all users to the convo
 
         int padding = 10;
         idLabel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
