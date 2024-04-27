@@ -96,7 +96,7 @@ class Session implements Runnable {
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
 
-                        "Successfully logged in!",
+                        server.getUserList(),
                         conversationId);
 
                         server.getUserList();
