@@ -83,7 +83,7 @@ public class ConversationLog {
 
 			for (Message message : this.messages) {
 				// Check if the message is not a login or logout request
-				if (message.getType() != Message.Type.LOGIN && message.getType() != Message.Type.LOGOUT) {
+				if (message.getType() != Message.Type.LOGIN || message.getType() != Message.Type.LOGOUT) {
 					writer.write("Message: " + message.toString());
 					writer.newLine();
 				}
