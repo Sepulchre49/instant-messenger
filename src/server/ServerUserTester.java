@@ -52,14 +52,14 @@ public class ServerUserTester {
 	
 	@Test
 	public void testReceive() {
-		Message msg = new Message(1,null,Message.Type.TEXT,Message.Status.REQUEST,"Test Receive Message");
+		Message msg = new Message(1,null,Message.Type.TEXT,Message.Status.REQUEST,"Test Receive Message", 1);
 		user.receive(msg);
 		assertEquals(1,user.getInboxCount());
 	}
 	
 	@Test
 	public void testSendMessage() {
-		Message msg = new Message(1,null,Message.Type.TEXT,Message.Status.REQUEST,"Test Send Message");
+		Message msg = new Message(1,null,Message.Type.TEXT,Message.Status.REQUEST,"Test Send Message",1);
 		user.receive(msg);
 		assertEquals(1,user.getInboxCount());
 		user.deliver();

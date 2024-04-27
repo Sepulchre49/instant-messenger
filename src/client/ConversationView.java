@@ -120,7 +120,7 @@ public class ConversationView extends JFrame {
                     }},
                     Message.Type.TEXT,
                     Message.Status.REQUEST,
-                    message
+                    message, 1
             ));
 
             chatArea.append("[User]: " + message + "\n");

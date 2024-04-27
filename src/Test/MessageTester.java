@@ -19,7 +19,7 @@ public class MessageTester {
 	@Before 
 	public void setUp() {
 		Set<Integer> recipients = new HashSet<>(Arrays.asList(1,2,3));
-		msg = new Message(0,recipients, Message.Type.TEXT,Message.Status.REQUEST,"Hello");
+		msg = new Message(0,recipients, Message.Type.TEXT,Message.Status.REQUEST,"Hello", 1);
 	}
 	
 	@Test
@@ -35,7 +35,7 @@ public class MessageTester {
 	
 	@Test
 	public void testConstructorWithNullRecipients() {
-		Message nullRepcipientsMessage = new Message(0,null,Message.Type.TEXT,Message.Status.REQUEST,"This is content testConstructorWithNullRecipients");
+		Message nullRepcipientsMessage = new Message(0,null,Message.Type.TEXT,Message.Status.REQUEST,"This is content testConstructorWithNullRecipients", 1);
 		assertNotNull(nullRepcipientsMessage.getReceiverIds());
 		assertEquals(0,nullRepcipientsMessage.getReceiverIds().size());
 	}
