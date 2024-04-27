@@ -38,60 +38,6 @@ public class Client {
         scanner = new Scanner(System.in);
     }
 
-    public void doMessageReadLoop() throws IOException, ClassNotFoundException, ExecutionException, InterruptedException {
-        int attempts = 3;
-        boolean success = false;
-        while (!success && attempts > 0) {
-            System.out.println("Username: ");
-            String user = scanner.nextLine();
-
-            System.out.println("Password: ");
-            String pass = scanner.nextLine();
-
-            success = login(user,pass);
-            --attempts;
-        }
-
-        if (success) {
-            OutQueue outQueue = new OutQueue(write);
-            Thread outThread = new Thread(outQueue);
-            outThread.start();
-
-            InQueue inQueue = new InQueue(read);
-            Thread inThread = new Thread(inQueue);
-            inThread.start();
-
-            System.out.println("Successfully logged in.");
-
-            boolean quit = false;
-            do {
-                System.out.println("Enter a message, or type 'logout' to quit: ");
-                String in = scanner.nextLine();
-                if (in.equals("logout")) {
-                    System.out.println("Logging out...");
-
-                    if (logout()) {
-                        System.out.println("(Client) Successfully logged out.");
-                    } else {
-                        System.out.println("Error logging out.");
-                    }
-                    quit = true;
-                } else {
-                    sendMessage(new Message(
-                            0,
-                            new ArrayList<>() {{
-                                add(1); // TODO : Hardcoded value. Must be replaced with actual recipient.
-                            }},
-                            Message.Type.TEXT,
-                            Message.Status.REQUEST,
-                            in,
-                            -1 // ConversationID: Fix when conversation endpoint is up
-                    ));
-                }
-            } while (!quit);
-        }
-    }
-
     public void connectToServer() throws IOException {
         try {
             this.socket = new Socket(this.host, this.port);
@@ -274,29 +220,6 @@ public class Client {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
-        System.out.println("Hello from the client!");
-
-        Client client = new Client();
-
-        try {
-            client.connectToServer();
-        } catch (IOException e) {
-            System.out.println("Error connecting to server.");
-            System.exit(1);
-        }
-
-        try {
-            client.doMessageReadLoop();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Error in message loop.");
-            System.exit(1);
-
-        } catch (ExecutionException | InterruptedException e) {
-            System.out.println("Error in auth.");
-            System.exit(1);
         }
     }
 }
