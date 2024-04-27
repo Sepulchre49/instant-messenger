@@ -116,7 +116,7 @@ public class ConversationView extends JFrame {
             gui.client.sendMessage(new Message(
                     0,
                     new ArrayList<>() {{
-                        add(recipientID); // TODO : Hardcoded value. Must be replaced with actual recipient.
+                        add(1); // TODO : Hardcoded value. Must be replaced with actual recipient.
                     }},
                     Message.Type.TEXT,
                     Message.Status.REQUEST,

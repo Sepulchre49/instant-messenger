@@ -165,6 +165,7 @@ public class Server {
         List<Integer> receiverIDs = msg.getReceiverIds(); // Change to List
         int messageID = msg.hashCode(); // Generate a unique ID for each message
         int conversationID = msg.getConversationId();
+        Set<ServerUser> participants = new HashSet<>();
 
         // Initialize receiver ID with a default value
         int receiverID = -1;
@@ -172,12 +173,20 @@ public class Server {
             receiverID = receiverIDs.get(0); // Get the first receiver ID
         }
 
+        // Populate participants
+        for (int id : receiverIDs) {
+            ServerUser participant = users.get(id);
+            if (participant != null) {
+                participants.add(participant);
+            }
+        }
+
         String currentDirectory = System.getProperty("user.dir");
         String filePath = currentDirectory + File.separator + "conversation_log_" + conversationID + ".log";
         File logFile = new File(filePath);
 
         // Create a new instance of ConversationLog
-        ConversationLog conversationLog = new ConversationLog(senderID, receiverID, messageID, conversationID);
+        ConversationLog conversationLog = new ConversationLog(senderID, receiverID, messageID, conversationID, participants);
 
         // Add the message to the log
         conversationLog.addMessage(msg);
