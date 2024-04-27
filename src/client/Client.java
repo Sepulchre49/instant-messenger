@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.*;
@@ -13,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Client {
-
     private String host;
     private int port;
     private Socket socket;
@@ -22,23 +22,23 @@ public class Client {
     public ObjectOutputStream write;
     private InQueue inbound;
     private OutQueue outbound;
-    private Map<String, Integer> usernameIdMap;
-    private ClientUser user;
+
+    public Map<Integer,String> usernameIdMap;
+
+    public ClientUser user;
     public static GUI gui;
 
     public Client() {
+        gui = null;
         this.host = "127.0.0.1";
         this.port = 3000;
 
         usernameIdMap = new HashMap<>(); //new
 
         scanner = new Scanner(System.in);
-        
-        user = new ClientUser();
     }
 
-    public void doMessageReadLoop()
-            throws IOException, ClassNotFoundException, ExecutionException, InterruptedException {
+    public void doMessageReadLoop() throws IOException, ClassNotFoundException, ExecutionException, InterruptedException {
         int attempts = 3;
         boolean success = false;
         while (!success && attempts > 0) {
@@ -48,7 +48,7 @@ public class Client {
             System.out.println("Password: ");
             String pass = scanner.nextLine();
 
-            success = login(user, pass);
+            success = login(user,pass);
             --attempts;
         }
 
@@ -76,10 +76,15 @@ public class Client {
                         System.out.println("Error logging out.");
                     }
                     quit = true;
-                    System.exit(0);
                 } else {
-                    sendMessage(new Message(user.getUserId(), null, Message.Type.TEXT, Message.Status.REQUEST, in,
-                            user.getConversationId())); // Pass conversationId
+                    sendMessage(new Message(
+                            0,
+                            new ArrayList<>() {{
+                                add(1); // TODO : Hardcoded value. Must be replaced with actual recipient.
+                            }},
+                            Message.Type.TEXT,
+                            Message.Status.REQUEST,
+                            in));
                 }
             } while (!quit);
         }
@@ -98,46 +103,86 @@ public class Client {
     }
 
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
-        Message m = new Message(0, null, Message.Type.LOGIN, Message.Status.REQUEST,
-                String.format("username: %s password: %s", username, password), -1); // also here we will treat -1 as
-        // the server recipient.
+        Message m = new Message(
+                0,
+                null,
+                Message.Type.LOGIN,
+                Message.Status.REQUEST,
+                String.format("username: %s password: %s", username, password));
 
         write.writeObject(m);
         Message res = (Message) read.readObject();
-        if (res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS) {
-            user.setUserId(res.getSenderId());
-            user.setConversationId(res.getConversationId());
-            return true;
-        } else {
-            return false;
+        boolean success = res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS;
+        if (success) {
+            user = new ClientUser(res.getReceiverIds().get(0), username);
+            decodeAndStoreUsernames(res.getContent());
+            System.out.println("Login successful");
+
+            outbound = new OutQueue(write);
+            Thread outThread = new Thread(outbound);
+            outThread.start();
+
+            inbound = new InQueue(read);
+            Thread inThread = new Thread(inbound);
+            inThread.start();
         }
+        return success;
+    }
+
+    public void decodeAndStoreUsernames(String content) { //new
+    	String[] usernameIdPairs = content.split("\\n");
+    	for(String pair : usernameIdPairs) {
+    		String[] usernameIdData = pair.split(" ");
+    		if(usernameIdData.length == 2) {
+    			String username = usernameIdData[1];
+    			int id = Integer.parseInt(usernameIdData[0]);
+    			usernameIdMap.put(id, username);
+    		}
+    	}
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {
-        Message m = new Message(user.getUserId(), null, Message.Type.LOGOUT, Message.Status.REQUEST, "Logging out!",
-                -1); // We will be treating -1 as message intended for the server.
+        boolean success = false;
+        Message response;
+        Message m = new Message(
+                user.getUserId(),
+                null,
+                Message.Type.LOGOUT,
+                Message.Status.REQUEST,
+                "Logging out!");
 
         write.writeObject(m);
-        write.flush();
-        Message res = (Message) read.readObject();
-        if (res.getType() == Message.Type.LOGOUT && res.getStatus() == Message.Status.SUCCESS) {
-            System.out.println("(Client) Successfully logged out.");
-            return true;
-        } else {
-            System.out.println("Error logging out.");
-            return false;
-        }
+        do {
+            if (!inbound.in.isEmpty()) {
+                Message res = inbound.in.poll();
+
+                if (res.getType() == Message.Type.LOGOUT && res.getStatus() == Message.Status.SUCCESS) {
+                    System.out.println("Successfully logged out!");
+                    outbound.quit();
+                    inbound.quit();
+                    success = true;
+                } else {
+                    inbound.in.add(res);
+                }
+            }
+        } while (!success);
+        return success;
+    }
+
+    public void viewConversation(int conversationID) {
+
     }
 
     public void sendMessage(Message message) throws IOException, ClassNotFoundException {
-        OutQueue.out.add(message);
+        outbound.out.add(message);
     }
 
-    public void receiveMessages() {
+    public void receiveMessage(Message message) {
 
     }
 
-    public static class InQueue implements Runnable {
+    class InQueue implements Runnable {
+        public Queue<Message> in = new ConcurrentLinkedQueue<>();
         private final ObjectInputStream read;
         private volatile boolean quit = false;
 
@@ -147,21 +192,27 @@ public class Client {
 
         @Override
         public void run() {
-            try {
-                while (!quit) {
+            while (!quit) {
+                try {
                     Message message = (Message) read.readObject();
-                    if (message != null) {
+                    in.add(message);
+
+                    if(gui == null) {
                         System.out.println(message.getContent());
+                    } else{
+                        gui.updateChatArea(message);
                     }
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                if (!quit) {
-                    System.out.println("Error in InQueue: " + e.getMessage());
+
+                } catch (IOException | ClassNotFoundException e) {
+                    if (!quit) {
+                        System.out.println("Error in InQueue: " + e.getMessage());
+                        quit = true;
+                    }
                 }
             }
         }
 
-        public void handleMessages() {
+        public void handleMessages(){
 
         }
 
@@ -169,17 +220,15 @@ public class Client {
             quit = true;
             Thread.currentThread().interrupt();
             try {
-                if (read != null) {
-                    read.close();
-                }
+                read.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public static class OutQueue implements Runnable {
-        public static BlockingQueue<Message> out = new LinkedBlockingQueue<>();
+    class OutQueue implements Runnable {
+        public BlockingQueue<Message> out = new LinkedBlockingQueue<>();
         private final ObjectOutputStream write;
         private volatile boolean quit = false;
 
@@ -221,7 +270,6 @@ public class Client {
             }
         }
     }
-
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         System.out.println("Hello from the client!");
 

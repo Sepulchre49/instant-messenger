@@ -1,16 +1,22 @@
 package client;
 
+import server.Conversation;
+
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HomeView extends JFrame {
     private final GUI gui;
     public DefaultListModel<JPanel> conListModel;
 
-    public HomeView(GUI gui){
+    public HomeView(GUI gui) {
         super("Home");
 
         this.gui = gui;
@@ -21,7 +27,7 @@ public class HomeView extends JFrame {
 
         // header
         JPanel header = new JPanel(new BorderLayout());
-        header.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        header.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // home icon
 
@@ -29,7 +35,7 @@ public class HomeView extends JFrame {
         JLabel headerLabel = new JLabel("Your Conversations", SwingConstants.LEFT);
         headerLabel.setFont(new Font("Arial", Font.BOLD, 15));
         header.add(headerLabel, BorderLayout.WEST);
-        headerLabel.setBorder(BorderFactory.createEmptyBorder(0,10,0,0));
+        headerLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         header.add(headerLabel, BorderLayout.CENTER);
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -37,7 +43,7 @@ public class HomeView extends JFrame {
         // add conversation button
         JButton newConButton = new JButton("New");
         newConButton.addActionListener(e -> {
-            newConversation();
+            new UserSelectionDialog(this);
         });
         buttonsPanel.add(newConButton, BorderLayout.EAST);
 
@@ -59,11 +65,11 @@ public class HomeView extends JFrame {
         // adding the header to the frame
         add(header, BorderLayout.NORTH);
 
-        // conlistmodel
+        // conlistmodel and population
         conListModel = new DefaultListModel<>();
-        populateConversations("001", "Recipient Name");
-        populateConversations("002", "someguy123");
-        populateConversations("020", "xXx_destroyer_xXx");
+        for(Map.Entry<Integer, String> entry : gui.client.usernameIdMap.entrySet()){ // TODO : replace when conversations are initialized
+            populateConversations(entry.getKey(), entry.getValue());
+        }
 
         // conversation list
         JList<JPanel> conList = new JList<>(conListModel);
@@ -78,8 +84,20 @@ public class HomeView extends JFrame {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
-                    System.out.println(conList.getSelectedIndex());
-                    gui.showConversationView(-1); // TODO : Replace with real dynamic ID
+                    JPanel selected = conList.getSelectedValue();
+                    if (selected != null) {
+                        JLabel idLabel = (JLabel) selected.getComponent(1);  // ID is the second component
+                        JLabel nameLabel = (JLabel) selected.getComponent(3);  // Name is the fourth component
+
+                        String idText = idLabel.getText();   // ID text
+                        String nameText = nameLabel.getText();  // Name
+
+                        String idNumberStr = idText.substring(idText.indexOf("ID ") + 3).trim();
+                        int RID = Integer.parseInt(idNumberStr);
+
+                        System.out.println("Selected ID: " + RID + ", Name: " + nameText);
+                        gui.showConversationView(RID, nameText);
+                    }
                 }
             }
         });
@@ -92,10 +110,7 @@ public class HomeView extends JFrame {
         System.exit(1);
     }
 
-    private void newConversation() {
-    }
-
-    private void populateConversations(String ID, String name) {
+    private void populateConversations(Integer ID, String name) {
         // list item formatting TODO: must replace dynamic set from ClientUser
         JPanel itemPanel = new JPanel();
         itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.LINE_AXIS));
@@ -114,6 +129,51 @@ public class HomeView extends JFrame {
         itemPanel.add(nameLabel);
 
         conListModel.addElement(itemPanel);
+    }
+
+    public class UserSelectionDialog extends JDialog{
+        private JList<String> userList;
+        private DefaultListModel<String> userModel;
+        private JButton createButton;
+
+        public UserSelectionDialog(Frame owner) {
+            super(owner, "Select Users for Conversing", true);
+            setSize(300, 400);
+            setLocationRelativeTo(owner);
+            setLayout(new BorderLayout());
+
+            userModel = new DefaultListModel<>();
+            for(Map.Entry<Integer, String> entry : gui.client.usernameIdMap.entrySet()){
+                userModel.addElement(String.format("[UID%s] %s", entry.getKey(), entry.getValue()));
+            }
+
+            userList = new JList<>(userModel);
+            userList.setCellRenderer(new ConversationCellRenderer());
+            userList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+            JScrollPane scrollPane = new JScrollPane(userList);
+            add(scrollPane, BorderLayout.CENTER);
+
+            createButton = new JButton("Create New Conversation");
+            createButton.addActionListener(this::createConversation); // create conversation...
+            add(createButton, BorderLayout.SOUTH);
+
+            setVisible(true);
+        }
+
+        private void createConversation(ActionEvent event) {
+            // TODO actually instantiate the conversation
+            java.util.List<String> selectedUsers = userList.getSelectedValuesList();
+            for(String pair : selectedUsers.toArray(new String[0])){
+                String[] parts = pair.split("\\] ");
+                String uid = parts[0].substring(4);  // Skips the initial "[UID" to start at the number
+                String name = parts[1];  // Removes the ';' at the end
+
+                System.out.println("Creating conversation for:");
+                System.out.println("UID: " + uid + ", Name: " + name);
+            }
+
+            dispose();
+        }
     }
 
     private static class ConversationCellRenderer extends DefaultListCellRenderer {
