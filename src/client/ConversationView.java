@@ -3,7 +3,6 @@ package client;
 import shared.Message;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +12,7 @@ import java.util.ArrayList;
 
 public class ConversationView extends JFrame {
     private final GUI gui;
+    private int recipientID;
     public JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
@@ -20,11 +20,13 @@ public class ConversationView extends JFrame {
     private JScrollPane scrollPane;
     private JLabel recipientLabel;
 
-    public ConversationView(GUI gui) {
+    public ConversationView(GUI gui, int ID) {
         // main frame
         super("Conversation");
 
         this.gui = gui;
+        this.recipientID = ID;
+
         setSize(625, 575);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -40,10 +42,11 @@ public class ConversationView extends JFrame {
         ImageIcon scaledBackIcon = new ImageIcon(scaledBackImage);
         backButton = new JButton(scaledBackIcon);
         backButton.setPreferredSize(new Dimension(25, 25));
+
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("you went backwards");
+                gui.showHomeView(gui);
             }
         });
         header.add(backButton, BorderLayout.WEST);
@@ -105,6 +108,7 @@ public class ConversationView extends JFrame {
 
         if (message.equals("/quit")){
             gui.logoutResult(gui.client.logout());
+            return;
         }
 
         if (!message.isEmpty()) {

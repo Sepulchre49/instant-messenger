@@ -8,7 +8,9 @@ import shared.Message;
 public class ClientUser {
     private int userId;
     private String username;
+
     private int conversationId; // New attribute
+
     private Set<Conversation> conversations;
 
     public ClientUser() {

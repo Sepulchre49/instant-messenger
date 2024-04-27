@@ -2,5 +2,7 @@ all
 clean
 client
 init
+run-client
+run-server
 server
 shared

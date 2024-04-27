@@ -9,11 +9,17 @@
     </target>
 
     <target name="shared" depends="init">
-	<javac srcdir="${src}/shared" destdir="${build}" includeantruntime="false" />
+	<javac srcdir="${src}/shared" destdir="${build}" includeantruntime="false">
+            <include name="shared"/>
+            <include name="shared/*.java"/>
+        </javac>
     </target>
 
     <target name="server" depends="shared">
-	<javac srcdir="${src}/server" destdir="${build}" classpath="${dist}/shared.jar" includeantruntime="false" />
+	<javac srcdir="${src}/server" destdir="${build}" classpath="${dist}/shared.jar" includeantruntime="false">
+            <include name="server"/>
+            <include name="server/*.java"/>
+        </javac>
 	<jar basedir="${build}/server" destfile="${dist}/server.jar">
 	    <manifest>
 		<attribute name="Main-Class" value="server.Server" />
@@ -32,7 +38,7 @@
 	<javac srcdir="${src}/client" destdir="${build}" classpath="${dist}/shared.jar" includeantruntime="false" />
 	<jar basedir="${build}/client" destfile="${dist}/client.jar">
 	    <manifest>
-		<attribute name="Main-Class" value="client.Client" />
+		<attribute name="Main-Class" value="client.GUI" />
 	    </manifest>
 	    <fileset dir="${build}">
 		<include name="client"/>

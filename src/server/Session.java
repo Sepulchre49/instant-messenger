@@ -90,11 +90,16 @@ class Session implements Runnable {
             if (user != null) {
                 res = new Message(
                         Server.SERVER_USER_ID,
-                        null,
+                        new ArrayList<>() {{
+                            add(user.getUserId());
+                        }},
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
+
                         "Successfully logged in!",
                         conversationId);
+
+                        server.getUserList();
                 success = true;
                 user.setOutputStream(out);
             }
@@ -139,7 +144,9 @@ class Session implements Runnable {
             synchronized (out) {
                 out.writeObject(new Message(
                             Server.SERVER_USER_ID,
-                            new ArrayList<>(user.getUserId()),
+                            new ArrayList<>() {{
+                                user.getUserId();
+                            }},
                             Message.Type.LOGOUT, 
                             Message.Status.SUCCESS, 
                             "You have been logged out of the server.",

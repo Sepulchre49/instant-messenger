@@ -1,6 +1,7 @@
 package shared;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -50,8 +51,8 @@ public class Message implements Serializable {
         return senderId;
     }
 
-    public Set<Integer> getReceiverIds() {
-        return receiverIds;
+    public ArrayList<Integer> getReceiverIds() {
+        return new ArrayList<>(receiverIds);
     }
 
     public Date getTimestamp() {
