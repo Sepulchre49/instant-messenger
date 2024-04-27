@@ -148,7 +148,8 @@ public class ConversationView extends JFrame {
                 }},
                 Message.Type.TEXT,
                 Message.Status.REQUEST,
-                message
+                message,
+                -1 // ConversationId: fix this when the conversation endpoint is up
         );
 
         if (!message.isEmpty()) {

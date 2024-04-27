@@ -84,7 +84,9 @@ public class Client {
                             }},
                             Message.Type.TEXT,
                             Message.Status.REQUEST,
-                            in));
+                            in,
+                            -1 // ConversationID: Fix when conversation endpoint is up
+                    ));
                 }
             } while (!quit);
         }
@@ -108,7 +110,9 @@ public class Client {
                 null,
                 Message.Type.LOGIN,
                 Message.Status.REQUEST,
-                String.format("username: %s password: %s", username, password));
+                String.format("username: %s password: %s", username, password),
+                -1 // ConversationId: fix this when the conversation endpoint is up
+        );
 
         write.writeObject(m);
         Message res = (Message) read.readObject();
@@ -149,7 +153,9 @@ public class Client {
                 null,
                 Message.Type.LOGOUT,
                 Message.Status.REQUEST,
-                "Logging out!");
+                "Logging out!",
+                -1 // ConversationID: fix when conversation endpoint is up
+        );
 
         write.writeObject(m);
         do {
