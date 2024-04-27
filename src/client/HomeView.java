@@ -137,7 +137,7 @@ public class HomeView extends JFrame {
         private JButton createButton;
 
         public UserSelectionDialog(Frame owner) {
-            super(owner, "Select Users", true);
+            super(owner, "Select Users for Conversing", true);
             setSize(300, 400);
             setLocationRelativeTo(owner);
             setLayout(new BorderLayout());

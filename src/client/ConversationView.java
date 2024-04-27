@@ -3,6 +3,9 @@ package client;
 import shared.Message;
 
 import javax.swing.*;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,9 +19,13 @@ public class ConversationView extends JFrame {
     private int recipientID;
     private String recipientName;
     public JTextArea chatArea;
+//    public JTextPane chatArea;
+
+    /*The less important variables*/
+    private JButton backButton;
     private JTextField messageField;
     private JButton sendButton;
-    private JButton backButton;
+
     private JScrollPane scrollPane;
     private JLabel recipientLabel;
 
@@ -63,9 +70,29 @@ public class ConversationView extends JFrame {
         // collation of header
         add(header, BorderLayout.NORTH);
 
-        // chat area
+        // chat area and styles
         chatArea = new JTextArea();
         chatArea.setEditable(false);
+
+//        chatArea = new JTextPane();
+//        chatArea.setEditable(false);
+//
+//        StyledDocument doc = chatArea.getStyledDocument();
+//
+//        Style systemStyle = chatArea.addStyle("System", null);
+//        StyleConstants.setForeground(systemStyle, Color.LIGHT_GRAY);
+//        StyleConstants.setItalic(systemStyle,true);
+//
+//        Style timestampStyle = chatArea.addStyle("Timestamp", null);
+//        StyleConstants.setForeground(timestampStyle, Color.GRAY);
+//        StyleConstants.setItalic(timestampStyle, true);
+//
+//        Style nameSenderStyle = chatArea.addStyle("SenderName", null);
+//        StyleConstants.setForeground(nameSenderStyle, Color.BLUE);
+//        StyleConstants.setBold(nameSenderStyle, true);
+//
+//        Style messageStyle = chatArea.addStyle("Message", null);
+
         scrollPane = new JScrollPane(chatArea);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -115,8 +142,8 @@ public class ConversationView extends JFrame {
         }
 
         Message m = new Message(
-                0,
-                new ArrayList<>() {{
+                gui.client.user.getUserId(),
+                new ArrayList<>() {{ // TODO : need to correct this to accomodate groupchats
                     add(recipientID);
                 }},
                 Message.Type.TEXT,
@@ -126,9 +153,9 @@ public class ConversationView extends JFrame {
 
         if (!message.isEmpty()) {
             gui.client.sendMessage(m);
-            String timestamp = m.getTimestamp().toString();  // Assuming it returns the string directly without the brackets
-            String[] parts = timestamp.split(" "); // Split by space
-            String truncatedTimestamp = parts[0] + " " + parts[1] + " " + parts[2] + " " + parts[3];
+            String timestamp = m.getTimestamp().toString();
+            String[] parts = timestamp.split(" ");
+            String truncatedTimestamp = parts[3];
 
             chatArea.append(String.format("[%s] [UID%s] %s: %s\n",
                     truncatedTimestamp,

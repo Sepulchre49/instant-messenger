@@ -5,12 +5,15 @@ import shared.Message;
 import javax.swing.*;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.Map;
 
 public class GUI {
     public final Client client;
     private final LoginView loginView;
     public ConversationView conversationView;
     public HomeView homeView;
+    public Map<Integer, List<Message>> messageMap;
 
     public GUI(Client client) {
         this.client = client;
@@ -67,8 +70,16 @@ public class GUI {
     }
 
     public void updateChatArea(Message message) {
-        if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.SUCCESS) {
-            conversationView.chatArea.append("[Recipient]: " + message.getContent() + "\n");
+        if (message.getType() == Message.Type.TEXT && !(message.getStatus() == Message.Status.RECEIVED)) {
+            String timestamp = message.getTimestamp().toString();
+            String[] parts = timestamp.split(" ");
+            String truncatedTimestamp = parts[3];
+
+            conversationView.chatArea.append(String.format("[%s] [UID%s] %s: %s\n",
+                    truncatedTimestamp,
+                    message.getSenderId(),
+                    client.usernameIdMap.get(message.getSenderId()),
+                    message.getContent()));
         }
     }
 
