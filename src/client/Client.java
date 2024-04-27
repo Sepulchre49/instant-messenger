@@ -1,17 +1,17 @@
 package client;
 
+import server.ServerUser;
 import shared.Message;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Client {
     private String host;
@@ -24,6 +24,7 @@ public class Client {
     private OutQueue outbound;
 
     public Map<Integer,String> usernameIdMap;
+    private Map<Integer, Set<Integer>> conversationMap;
 
     public ClientUser user;
     public static GUI gui;
@@ -65,7 +66,7 @@ public class Client {
         boolean success = res.getType() == Message.Type.LOGIN && res.getStatus() == Message.Status.SUCCESS;
         if (success) {
             user = new ClientUser(res.getReceiverIds().get(0), username);
-            decodeAndStoreUsernames(res.getContent());
+            decodeLoginPayload(res.getContent());
             System.out.println("Login successful");
 
             outbound = new OutQueue(write);
@@ -79,16 +80,28 @@ public class Client {
         return success;
     }
 
-    public void decodeAndStoreUsernames(String content) { //new
-    	String[] usernameIdPairs = content.split("\\n");
-    	for(String pair : usernameIdPairs) {
-    		String[] usernameIdData = pair.split(" ");
-    		if(usernameIdData.length == 2) {
-    			String username = usernameIdData[1];
-    			int id = Integer.parseInt(usernameIdData[0]);
-    			usernameIdMap.put(id, username);
-    		}
-    	}
+    public void decodeLoginPayload(String content) {
+
+        // Matches conversation id followed by the ids of all convo participants
+        Pattern conversationPattern = Pattern.compile("(\\d+)(\\s+\\d+)*");
+        // Matches a pair of username, id
+        Pattern userPattern = Pattern.compile("(\\d+)\\s+(\\p{Alpha}+)");
+
+        for (String line : content.lines().toList()) {
+            Matcher conversationMatch = conversationPattern.matcher(line);
+            Matcher userMatch = userPattern.matcher(line);
+            if (conversationMatch.matches()) {
+                int conversationId = Integer.parseInt(conversationMatch.group(1));
+                Set<Integer> participants = Arrays.stream(conversationMatch.group(2).split("\\s+")).map(Integer::parseInt).collect(Collectors.toSet());
+                conversationMap.put(conversationId, participants);
+                System.out.printf("Adding conversation %d\n", conversationId);
+            } else if (userMatch.matches()) {
+                int userId = Integer.parseInt(userMatch.group(1));
+                String username = userMatch.group(2);
+                usernameIdMap.put(userId, username);
+                System.out.printf("Adding user: %d %s\n", userId, username);
+            }
+        }
     }
 
     public boolean logout() throws IOException, ClassNotFoundException {

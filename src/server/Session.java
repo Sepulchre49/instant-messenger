@@ -1,5 +1,7 @@
 package server;
 
+import shared.Message;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -7,8 +9,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import shared.Message;
 
 class LoginException extends Exception {
     public LoginException(String msg, Throwable cause) {
@@ -29,14 +29,12 @@ class Session implements Runnable {
     private ObjectOutputStream out;
     private Server server;
     private ServerUser user;
-    private int conversationId; // Add conversationId field
 
-    public Session(Socket s, Server server, int conversationId) throws IOException {
+    public Session(Socket s, Server server) throws IOException {
         this.server = server;
         client = s;
         clientAddress = client.getInetAddress().getHostAddress();
         System.out.println("Connection created with " + clientAddress);
-        this.conversationId = conversationId; // Initialize conversationId
 
         try {
             in = new ObjectInputStream(client.getInputStream());
@@ -79,7 +77,7 @@ class Session implements Runnable {
                     Message.Type.LOGIN, 
                     Message.Status.FAILURE, 
                     "Failed to log in!",
-                    conversationId);
+                    Server.SERVER_CONVO_ID);
 
         if (matcher.find()) {
             String username = matcher.group(1);
@@ -88,6 +86,16 @@ class Session implements Runnable {
             user = server.login(username, password);
 
             if (user != null) {
+                String payload = server.getUserList();
+
+                for (Conversation conversation : user.getConversations()) {
+                    payload += conversation.getID();
+                    for (ServerUser participant : conversation.getParticipants()) {
+                        payload += " " + participant.getUserId();
+                    }
+                    payload += "\n";
+                }
+
                 res = new Message(
                         Server.SERVER_USER_ID,
                         new ArrayList<>() {{
@@ -95,9 +103,8 @@ class Session implements Runnable {
                         }},
                         Message.Type.LOGIN, 
                         Message.Status.SUCCESS, 
-
-                        server.getUserList(),
-                        conversationId);
+                        payload,
+                        Server.SERVER_CONVO_ID);
 
                         server.getUserList();
                 success = true;
@@ -127,7 +134,7 @@ class Session implements Runnable {
                             Message.Type.LOGIN, 
                             Message.Status.FAILURE, 
                             "Nu uh uh",
-                            conversationId));
+                            Server.SERVER_CONVO_ID));
             }
         } catch (IOException e) {
             System.err.println("Error trying to write login failure message to " + client);
@@ -150,7 +157,7 @@ class Session implements Runnable {
                             Message.Type.LOGOUT, 
                             Message.Status.SUCCESS, 
                             "You have been logged out of the server.",
-                            conversationId));
+                            Server.SERVER_CONVO_ID));
             }
             System.out.println("Successfully logged out client " + clientAddress);
         } catch (IOException e) {
@@ -169,7 +176,7 @@ class Session implements Runnable {
                             Message.Type.LOGOUT,
                             Message.Status.SUCCESS,
                             "Terminating connection",
-                            conversationId));
+                            Server.SERVER_CONVO_ID));
             }
         } catch (IOException e) {
             System.out.println("Error sending termination message. Proceeding with termination.");
@@ -185,8 +192,6 @@ class Session implements Runnable {
     }
 
     private void handleText(Message m) {
-        // Add conversationId to the message before forwarding
-        m.setConversationId(conversationId);
         server.forward(m);
         try {
             synchronized (out) {
@@ -196,7 +201,7 @@ class Session implements Runnable {
                         Message.Type.TEXT,
                         Message.Status.RECEIVED,
                         "Message received.",
-                        conversationId));
+                        Server.SERVER_CONVO_ID));
             }
         } catch (IOException e) {
             System.err.println("Error sending message received acknowledgement to " + clientAddress);

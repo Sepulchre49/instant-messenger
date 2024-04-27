@@ -21,9 +21,9 @@ class ServerInitializationException extends Exception {
 
 public class Server {
     public static final int SERVER_USER_ID = 0;
+    public static final int SERVER_CONVO_ID = 0;
     private static final int DEFAULT_PORT = 3000;
     private static final int MAX_THREADS = 20;
-    private int conversationCounter = 0;
 
     private ServerSocket socket;
     private Map<String, Integer> usernames;
@@ -54,19 +54,12 @@ public class Server {
         while (true) {
             try {
                 Socket clientSocket = socket.accept();
-                // Assuming you have some logic to determine the conversationId for each session
-                int conversationId = determineConversationId(); // Implement this method according to your requirements
-                tp.execute(new Session(clientSocket, this, conversationId)); // Pass conversationId
+                tp.execute(new Session(clientSocket, this));
             } catch (IOException e) {
                 System.err.println("Error accepting a new connection.");
                 e.printStackTrace();
             }
         }
-    }
-
-    // Method to determine conversation ID
-    private synchronized int determineConversationId() {
-        return ++conversationCounter;
     }
 
     private void init_users() throws FileNotFoundException {
@@ -75,7 +68,7 @@ public class Server {
 
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            Matcher matcher = Pattern.compile("(\\w+)\\s+(\\w+)").matcher(line);
+            Matcher matcher = Pattern.compile("(\\p{Alpha}+)\\s+(\\w+)").matcher(line);
 
             if (matcher.find()) {
                 String username = matcher.group(1);

@@ -3,7 +3,9 @@ package server;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.HashSet;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import shared.Message;
@@ -16,17 +18,26 @@ public class ServerUser {
     private Queue<Message> messageQueue;
     private Socket connection;
     private ObjectOutputStream out;
+    private Set<Conversation> conversations;
 
     public ServerUser(String username, String password) {
         // Make sure that the user id will never ever be equal to the id reserved by the server
         if (count == Server.SERVER_USER_ID)
             count++;
-
         this.userId = count++;
         this.username = username;
         this.password = password;
         this.isLoggedIn = false;
         this.messageQueue = new ConcurrentLinkedQueue<>();
+        this.conversations = new HashSet<>();
+    }
+
+    public boolean addConversation(Conversation c) {
+        return conversations.add(c);
+    }
+
+    public Set<Conversation> getConversations() {
+        return conversations;
     }
     
     public void setOutputStream(ObjectOutputStream out) {

@@ -74,11 +74,7 @@ public class Message implements Serializable {
     public int getConversationId() {
         return conversationId;
     }
-    
-    public void setConversationId(int conversationId) {
-        this.conversationId = conversationId;
-    }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
