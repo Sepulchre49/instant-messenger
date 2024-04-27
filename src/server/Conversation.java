@@ -8,7 +8,7 @@ import java.util.Set;
 import shared.Message;
 
 public class Conversation {
-    private int id;
+    private int id; // Conversation ID
     private Set<ServerUser> participants;
     private List<Message> messages;
     private File log;
@@ -20,8 +20,13 @@ public class Conversation {
         this.messages = new ArrayList<>();
     }
 
+    // Method to add a message to the conversation
     public void addMsg(Message message) {
-        this.messages.add(message);
+        if (message.getConversationId() == this.id) {
+            this.messages.add(message);
+        } else {
+            throw new IllegalArgumentException("Message conversationId does not match Conversation's id");
+        }
     }
 
     public List<Message> getAllMsgs() {
