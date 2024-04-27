@@ -50,6 +50,7 @@ public class ConversationView extends JFrame {
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                conversation.setChatArea(null);
                 gui.showHomeView();
             }
         });
@@ -67,6 +68,7 @@ public class ConversationView extends JFrame {
         // chat area and styles
         chatArea = new JTextArea();
         chatArea.setEditable(false);
+        conversation.setChatArea(chatArea);
 
 //        chatArea = new JTextPane();
 //        chatArea.setEditable(false);

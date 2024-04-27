@@ -179,7 +179,7 @@ public class Client {
                     if(gui == null) {
                         System.out.println(message.getContent());
                     } else{
-                        gui.updateChatArea(message);
+                        conversationMap.get(message.getConversationId()).addMessage(message, Client.this);
                     }
 
                 } catch (IOException | ClassNotFoundException e) {

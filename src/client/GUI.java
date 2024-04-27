@@ -69,19 +69,6 @@ public class GUI {
         homeView.setVisible(true);
     }
 
-    public void updateChatArea(Message message) {
-        if (message.getType() == Message.Type.TEXT && !(message.getStatus() == Message.Status.RECEIVED)) {
-            String timestamp = message.getTimestamp().toString();
-            String[] parts = timestamp.split(" ");
-            String truncatedTimestamp = parts[3];
-
-            conversationView.chatArea.append(String.format("[%s] [UID%s] %s: %s\n",
-                    truncatedTimestamp,
-                    message.getSenderId(),
-                    client.usernameIdMap.get(message.getSenderId()),
-                    message.getContent()));
-        }
-    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
