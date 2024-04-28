@@ -120,10 +120,13 @@ public class HomeView extends JFrame {
         StringBuilder recipientsText = new StringBuilder();
         itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.LINE_AXIS));
 
-        for(int i = 0; i < receivers.size() - 1; i++){
+        int rec = receivers.indexOf(gui.client.user.getUserId());
+        receivers.remove(rec);
+
+        for(int i = 0; i < receivers.size(); i++){
             String name = gui.client.usernameIdMap.get(receivers.get(i));
             recipientsText.append(name);
-            if (i < receivers.size() - 2) {
+            if (i < receivers.size() - 1) {
                 recipientsText.append(", ");
             }
         }
