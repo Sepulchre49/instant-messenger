@@ -152,15 +152,8 @@ public class ConversationView extends JFrame {
 
         if (!message.isEmpty()) {
             gui.client.sendMessage(m);
-            String timestamp = m.getTimestamp().toString();
-            String[] parts = timestamp.split(" ");
-            String truncatedTimestamp = parts[3];
 
-            chatArea.append(String.format("[%s] [UID%s] %s: %s\n",
-                    truncatedTimestamp,
-                    gui.client.user.getUserId(),
-                    gui.client.user.getUsername(),
-                    message));
+            conversation.addMessage(m);
 
             // Clear the message field
             messageField.setText("");
