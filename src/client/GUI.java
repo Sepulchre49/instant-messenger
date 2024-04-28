@@ -3,6 +3,7 @@ package client;
 import shared.Message;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
@@ -45,7 +46,7 @@ public class GUI {
         }
     }
 
-    public void showConversationView(int convoId, String rName) {
+    public void showConversationView(int convoId, String rName) throws BadLocationException {
         if (homeView != null) {
             homeView.setVisible(false);
         }

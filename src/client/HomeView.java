@@ -5,8 +5,10 @@ import shared.Message;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,7 +22,7 @@ public class HomeView extends JFrame {
     public DefaultListModel<JPanel> conListModel;
 
     public HomeView(GUI gui) {
-        super("Home");
+        super(String.format("%s's Home", gui.client.user.getUsername()).toUpperCase());
 
         this.gui = gui;
 
@@ -35,7 +37,8 @@ public class HomeView extends JFrame {
         // home icon
 
         // home label
-        JLabel headerLabel = new JLabel("Your Conversations", SwingConstants.LEFT);
+        String headerText = String.format("%s's Conversations", gui.client.user.getUsername());
+        JLabel headerLabel = new JLabel(headerText.substring(0, 1).toUpperCase() + headerText.substring(1), SwingConstants.LEFT);
         headerLabel.setFont(new Font("Arial", Font.BOLD, 15));
         header.add(headerLabel, BorderLayout.WEST);
         headerLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
@@ -71,7 +74,7 @@ public class HomeView extends JFrame {
         // conlistmodel and population
         conListModel = new DefaultListModel<>();
         for (Conversation conversation : gui.client.getConversations()) {
-            populateConversations(conversation.getId());
+            populateConversations(conversation.getId(), conversation.getParticipants());
         }
 
         // conversation list
@@ -99,7 +102,11 @@ public class HomeView extends JFrame {
                         int RID = Integer.parseInt(idNumberStr);
 
                         System.out.println("Selected ID: " + RID + ", Name: " + nameText);
-                        gui.showConversationView(RID, nameText);
+                        try {
+                            gui.showConversationView(RID, nameText);
+                        } catch (BadLocationException ex) {
+                            throw new RuntimeException(ex);
+                        }
                     }
                 }
             }
@@ -113,12 +120,57 @@ public class HomeView extends JFrame {
         System.exit(1);
     }
 
-    public void populateConversations(int conversationId) {
+    public void populateConversations(int conversationId, ArrayList<Integer> receivers) {
+        JPanel itemPanel = new JPanel();
+        StringBuilder recipientsText = new StringBuilder();
+        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.LINE_AXIS));
+
+        int rec = receivers.indexOf(gui.client.user.getUserId());
+        receivers.remove(rec);
+
+        for(int i = 0; i < receivers.size(); i++){
+            String name = gui.client.usernameIdMap.get(receivers.get(i));
+            recipientsText.append(name);
+            if (i < receivers.size() - 1) {
+                recipientsText.append(", ");
+            }
+        }
+
+        JLabel idLabel = new JLabel("ID " + conversationId);
+        JLabel nameLabel = new JLabel(recipientsText.toString());
+
+        int padding = 10;
+        idLabel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
+        nameLabel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
+
+
+        itemPanel.add(Box.createHorizontalStrut(10));
+        itemPanel.add(idLabel);
+        itemPanel.add(Box.createHorizontalStrut(40));
+        itemPanel.add(nameLabel);
+
+        conListModel.addElement(itemPanel);
+    }
+
+    public void populateConversations(int conversationId, Set<Integer> receivers) {
         JPanel itemPanel = new JPanel();
         itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.LINE_AXIS));
 
+        Integer[] receiverArray = receivers.toArray(new Integer[0]);
+        StringBuilder recipientsText = new StringBuilder();
+
+        for (int i = 0; i < receiverArray.length; i++) {
+            String name = gui.client.usernameIdMap.get(receiverArray[i]);
+            if (name != null) {
+                recipientsText.append(name);
+                if (i < receiverArray.length - 1) {
+                    recipientsText.append(", ");
+                }
+            }
+        }
+
         JLabel idLabel = new JLabel("ID " + conversationId);
-        JLabel nameLabel = new JLabel("Usernames go here"); // TODO: Add usernames of all users to the convo
+        JLabel nameLabel = new JLabel(recipientsText.toString());
 
         int padding = 10;
         idLabel.setBorder(BorderFactory.createEmptyBorder(padding, padding, padding, padding));
@@ -156,13 +208,25 @@ public class HomeView extends JFrame {
             add(scrollPane, BorderLayout.CENTER);
 
             createButton = new JButton("Create New Conversation");
-            createButton.addActionListener(this::createConversation); // create conversation...
+            createButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if(userList.isSelectionEmpty()) {
+                        JOptionPane.showMessageDialog(UserSelectionDialog.this,
+                                "Please select at least one user to start a conversation.",
+                                "Selection Required",
+                                JOptionPane.ERROR_MESSAGE);
+                    } else{
+                        createConversation();
+                    }
+                }
+            }); // create conversation...
             add(createButton, BorderLayout.SOUTH);
 
             setVisible(true);
         }
 
-        private void createConversation(ActionEvent event) {
+        private void createConversation() {
             java.util.List<String> selectedUsers = userList.getSelectedValuesList();
             Set<Integer> participants = new HashSet<>(gui.client.user.getUserId());
             for(String pair : selectedUsers.toArray(new String[0])){
