@@ -15,10 +15,10 @@ public class Conversation {
     private List<Message> messages;
     private File log;
 
-    public Conversation(Set<ServerUser> participants, File log) {
+    public Conversation(Set<ServerUser> participants) {
         this.id = count++;
         this.participants = participants;
-        this.log = log;
+        this.log = new File(String.format("%d.log", id));
         this.messages = new ArrayList<>();
 
         // Add this conversationId to each ServerUser's conversations set.

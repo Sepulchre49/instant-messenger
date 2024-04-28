@@ -1,12 +1,17 @@
 package client;
 
+import shared.Message;
+
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -161,14 +166,41 @@ public class HomeView extends JFrame {
         private void createConversation(ActionEvent event) {
             // TODO actually instantiate the conversation
             java.util.List<String> selectedUsers = userList.getSelectedValuesList();
+            Set<Integer> participants = new HashSet<>(gui.client.user.getUserId());
             for(String pair : selectedUsers.toArray(new String[0])){
                 String[] parts = pair.split("\\] ");
                 String uid = parts[0].substring(4);  // Skips the initial "[UID" to start at the number
+                participants.add(Integer.parseInt(uid));
                 String name = parts[1];  // Removes the ';' at the end
 
-                System.out.println("Creating conversation for:");
-                System.out.println("UID: " + uid + ", Name: " + name);
+                //System.out.println("Creating conversation for:");
+                //System.out.println("UID: " + uid + ", Name: " + name);
             }
+
+
+            gui.client.outbound.out.add(new Message(
+                    gui.client.user.getUserId(),
+                    participants,
+                    Message.Type.CREATE_CONVERSATION,
+                    Message.Status.REQUEST,
+                    "",
+                    -1));
+
+            boolean done = false;
+            do {
+                if (!gui.client.inbound.in.isEmpty()) {
+                    Message res = gui.client.inbound.in.poll();
+                    if (res.getType() == Message.Type.CREATE_CONVERSATION && res.getStatus() == Message.Status.SUCCESS) {
+                        int convoId = Integer.parseInt(res.getContent());
+                        gui.client.addConversation(convoId, participants);
+                        populateConversations(convoId);
+                        done = true;
+                    } else {
+                        gui.client.inbound.in.add(res);
+                    }
+                }
+
+            } while (!done);
 
             dispose();
         }

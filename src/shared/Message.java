@@ -11,7 +11,8 @@ public class Message implements Serializable {
     public enum Type {
         LOGIN,
         LOGOUT,
-        TEXT
+        TEXT,
+        CREATE_CONVERSATION
     }
 
     public enum Status {

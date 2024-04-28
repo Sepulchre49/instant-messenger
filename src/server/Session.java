@@ -7,6 +7,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -166,6 +168,36 @@ class Session implements Runnable {
         }
     }
 
+    private boolean handleConversation(Message m) {
+        boolean success = false;
+        if (m.getType() == Message.Type.CREATE_CONVERSATION && m.getStatus() == Message.Status.REQUEST) {
+            Set<Integer> participants = new HashSet<>(m.getReceiverIds());
+            participants.add(m.getSenderId());
+            int convoId = server.requestNewConversation(participants);
+            if (convoId > 0) {
+                success = true;
+                try {
+                    synchronized (out) {
+                        out.writeObject(new Message(
+                                Server.SERVER_USER_ID,
+                                new ArrayList<>() {{
+                                    add(user.getUserId());
+                                }},
+                                Message.Type.CREATE_CONVERSATION,
+                                Message.Status.SUCCESS,
+                                Integer.toString(convoId),
+                                Server.SERVER_CONVO_ID
+                        ));
+                    }
+                } catch (IOException e) {
+                    System.err.printf("Error sending new conversation id to user %s", user.getUsername());
+                    e.printStackTrace();
+                }
+            }
+        }
+        return success;
+    }
+
     private void terminate() {
         // TODO: Make an special connection termination message
         try {
@@ -228,6 +260,9 @@ class Session implements Runnable {
                         break;
                     case LOGIN:
                         handleDuplicateLogin();
+                        break;
+                    case CREATE_CONVERSATION:
+                        handleConversation(m);
                         break;
                 }
             } catch (IOException e) {

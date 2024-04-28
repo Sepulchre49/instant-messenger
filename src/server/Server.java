@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import shared.Message;
 
@@ -28,7 +30,8 @@ public class Server {
     private ServerSocket socket;
     private Map<String, Integer> usernames;
     private Map<Integer, ServerUser> users;
-    private Set<Integer> activeUsers;
+    private final Set<Integer> activeUsers;
+    private Set<Set<Integer>> conversations;
 
     public Server(int port) throws ServerInitializationException {
         try {
@@ -39,7 +42,8 @@ public class Server {
 
         usernames = new HashMap<>();
         users = new HashMap<>();
-        activeUsers = new HashSet<>();
+        activeUsers = ConcurrentHashMap.newKeySet();
+        conversations = new HashSet<>();
 
         try {
             init_users();
@@ -137,6 +141,17 @@ public class Server {
         } else {
             System.out.println("Failed to log out user " + user.getUsername() + ". Already signed out.");
         }
+    }
+
+    public int requestNewConversation(Set<Integer> participants) {
+        int result = -1;
+        if (!conversations.contains(participants)) {
+            Set<ServerUser> p = participants.stream().map(id -> users.get(id)).collect(Collectors.toSet());
+            Conversation convo = new Conversation(p);
+            conversations.add(participants);
+            result = convo.getID();
+        }
+        return result;
     }
 
     public void forward(Message msg) {

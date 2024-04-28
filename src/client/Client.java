@@ -20,8 +20,8 @@ public class Client {
     private Scanner scanner;
     public ObjectInputStream read;
     public ObjectOutputStream write;
-    private InQueue inbound;
-    private OutQueue outbound;
+    public InQueue inbound;
+    public OutQueue outbound;
 
     public Map<Integer,String> usernameIdMap;
 
@@ -86,7 +86,7 @@ public class Client {
     public void decodeLoginPayload(String content) {
 
         // Matches conversation id followed by the ids of all convo participants
-        Pattern conversationPattern = Pattern.compile("(\\d+)(\\s+\\d+)*");
+        Pattern conversationPattern = Pattern.compile("(\\d+)((?:\\s+\\d+)*)");
         // Matches a pair of username, id
         Pattern userPattern = Pattern.compile("(\\d+)\\s+(\\p{Alpha}+)");
 
@@ -96,7 +96,7 @@ public class Client {
 
             if (conversationMatch.matches()) {
                 int conversationId = Integer.parseInt(conversationMatch.group(1));
-                Set<Integer> participants = Arrays.stream(conversationMatch.group(2).split("\\s+"))
+                Set<Integer> participants = Arrays.stream(conversationMatch.group(2).strip().split("\\s+"))
                         .map(Integer::parseInt)
                         .collect(Collectors.toSet());
                 conversationMap.put(conversationId, new Conversation(conversationId, participants));
@@ -148,6 +148,12 @@ public class Client {
         return conversationMap.values();
     }
 
+    public Conversation addConversation(int id, Set<Integer> participants) {
+        Conversation conversation = new Conversation(id, participants);
+        conversationMap.put(id, conversation);
+        return conversation;
+    }
+
     public void viewConversation(int conversationID) {
 
     }
@@ -179,7 +185,9 @@ public class Client {
                     if(gui == null) {
                         System.out.println(message.getContent());
                     } else{
-                        conversationMap.get(message.getConversationId()).addMessage(message, Client.this);
+                        if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.REQUEST) {
+                            conversationMap.get(message.getConversationId()).addMessage(message, Client.this);
+                        }
                     }
 
                 } catch (IOException | ClassNotFoundException e) {
