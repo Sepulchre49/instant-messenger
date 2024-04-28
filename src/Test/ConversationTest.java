@@ -37,7 +37,7 @@ public class ConversationTest {
 		participants.add(new ServerUser("user1", "12345"));
 		participants.add(new ServerUser("user2", "456789"));
 		File log= new File("conversation_log.txt");
-		conversation = new Conversation(1,participants,log);
+		conversation = new Conversation(participants);
 	}
 	
 	@Test
@@ -45,9 +45,9 @@ public class ConversationTest {
 		//Create sample conversation 
 		Set<ServerUser> participants = new HashSet<>();
 		File logFile = new File("conversation_log.txt");
-		Conversation conversation = new Conversation(1,participants,logFile);
+		Conversation conversation = new Conversation(participants);
 		//Add Message 
-		Message msg1= new Message(1,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"Hello");
+		Message msg1= new Message(1,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"Hello", 1);
 		conversation.addMsg(msg1);
 		//verify the message 
 		List<Message> allMessage = conversation.getAllMsgs();
@@ -58,12 +58,11 @@ public class ConversationTest {
 	@Test
 	public void getAllMsgTest() {
 		Set<ServerUser> participants = new HashSet<>();
-		File logFile = new File("conversation_log.txt");
-		Conversation conversation = new Conversation(2,participants,logFile);
+		Conversation conversation = new Conversation(participants);
 		
 		//Add more message
-		Message msg2= new Message(2,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"How are you doing?");
-		Message msg3= new Message(3,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"I am good , Thanks!");
+		Message msg2= new Message(2,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"How are you doing?", 1);
+		Message msg3= new Message(3,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"I am good , Thanks!", 1);
 		conversation.addMsg(msg2);
 		conversation.addMsg(msg3);
 		
@@ -78,11 +77,11 @@ public class ConversationTest {
 	public void getLastMsg() {
 		Set<ServerUser> participants = new HashSet<>();
 		File logFile = new File("conversation_log.txt");
-		Conversation conversation = new Conversation(2,participants,logFile);
+		Conversation conversation = new Conversation(participants);
 		
 		//Add more messages
-		Message msg2= new Message(2,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"How are you doing?");
-		Message msg3= new Message(3,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"I am good , Thanks!");
+		Message msg2= new Message(2,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"How are you doing?", 1);
+		Message msg3= new Message(3,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"I am good , Thanks!", 1);
 		conversation.addMsg(msg2);
 		conversation.addMsg(msg3);
 		
@@ -94,8 +93,7 @@ public class ConversationTest {
 	@Test
 	public void getIDTest() {
 		Set<ServerUser> participants = new HashSet<>();
-		File logFile = new File("conversation_log.txt");
-		Conversation conversation = new Conversation( 1,participants,logFile);
+		Conversation conversation = new Conversation(participants);
 		// verify conversation ID
 		assertEquals(1,conversation.getID());
 	}
@@ -104,7 +102,7 @@ public class ConversationTest {
 	public void getLogTest() {
 		Set<ServerUser> participants = new HashSet<>();
 		File logFile = new File("conversation_log.txt");
-		Conversation conversation = new Conversation( 2,participants,logFile);
+		Conversation conversation = new Conversation(participants);
 		//verify log file
 		assertEquals(logFile, conversation.getLog());
 		
