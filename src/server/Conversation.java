@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import shared.Message;
 
 public class Conversation {
-    private int count = 1;
+    private static int count = 1;
     private int id; // Conversation ID
     private Set<ServerUser> participants;
     private List<Message> messages;
