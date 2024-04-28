@@ -99,6 +99,7 @@ public class Client {
                 Set<Integer> participants = Arrays.stream(conversationMatch.group(2).strip().split("\\s+"))
                         .map(Integer::parseInt)
                         .collect(Collectors.toSet());
+                participants.remove(user.getUserId());
                 conversationMap.put(conversationId, new Conversation(conversationId, participants));
                 System.out.printf("Adding conversation %d\n", conversationId);
             } else if (userMatch.matches()) {
