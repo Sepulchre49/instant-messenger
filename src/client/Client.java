@@ -193,7 +193,7 @@ public class Client {
                             participants.remove(user.getUserId());
                             addConversation(message.getConversationId(), participants);
                             if (gui.homeView != null) {
-                                gui.homeView.populateConversations(message.getConversationId());
+                                gui.homeView.populateConversations(message.getConversationId(), message.getReceiverIds());
                             }
                         }
                     }

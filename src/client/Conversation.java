@@ -2,7 +2,6 @@ package client;
 
 import shared.Message;
 
-import javax.swing.*;
 import java.util.*;
 
 public class Conversation {

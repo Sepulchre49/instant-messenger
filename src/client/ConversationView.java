@@ -57,7 +57,20 @@ public class ConversationView extends JFrame {
         header.add(backButton, BorderLayout.WEST);
 
         // CID :: Recipient's name
-        conversationLabel = new JLabel(String.format("[Conversation: %d]", conversation.getId()), SwingConstants.LEFT);
+        Integer[] receiverArray = conversation.getParticipants().toArray(new Integer[0]);
+        StringBuilder recipientsText = new StringBuilder();
+
+        for (int i = 0; i < receiverArray.length; i++) {
+            String name = gui.client.usernameIdMap.get(receiverArray[i]);
+            if (name != null) {
+                recipientsText.append(name);
+                if (i < receiverArray.length - 1) {
+                    recipientsText.append(", ");
+                }
+            }
+        }
+
+        conversationLabel = new JLabel(String.format("[Conversation: %d] %s", conversation.getId(), recipientsText.toString()), SwingConstants.LEFT);
         conversationLabel.setFont(new Font("Arial", Font.BOLD, 15));
         conversationLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         header.add(conversationLabel, BorderLayout.CENTER);
