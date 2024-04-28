@@ -198,6 +198,12 @@ public class Server {
                 participants.add(participant);
             }
         }
+        
+        // Add sender to participants
+        ServerUser sender = users.get(senderID);
+        if (sender != null) {
+            participants.add(sender);
+        }
 
         String currentDirectory = System.getProperty("user.dir");
         String filePath = currentDirectory + File.separator + "conversation_log_" + conversationID + ".log";

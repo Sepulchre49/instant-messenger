@@ -64,29 +64,28 @@ public class ConversationLog {
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true));
 
-			writer.write("Timestamp: " + this.getTimeStamp().toString());
-			writer.newLine();
-			writer.write("Sender ID: " + this.getSenderID());
-			writer.newLine();
-			writer.write("Recipient ID: " + this.getRecipientID());
-			writer.newLine();
-			writer.write("Message ID: " + this.getMessageID());
-			writer.newLine();
-			writer.write("Conversation ID: " + this.getConversationID());
-			writer.newLine();
-
-			writer.write("Participants: ");
-			for (ServerUser participant : this.participants) {
-				writer.write(participant.getUsername() + ", ");
-			}
-			writer.newLine();
-
 			for (Message message : this.messages) {
-				// Check if the message is not a login or logout request
-				if (message.getType() != Message.Type.LOGIN || message.getType() != Message.Type.LOGOUT) {
-					writer.write("Message: " + message.toString());
-					writer.newLine();
+				writer.write("Timestamp: " + this.getTimeStamp().toString());
+				writer.newLine();
+				writer.write("Sender ID: " + this.getSenderID());
+				writer.newLine();
+				writer.write("Recipient ID: " + this.getRecipientID());
+				writer.newLine();
+				writer.write("Message ID: " + this.getMessageID());
+				writer.newLine();
+				writer.write("Conversation ID: " + this.getConversationID());
+				writer.newLine();
+
+				StringBuilder participantsString = new StringBuilder("Participants: ");
+				for (ServerUser participant : this.participants) {
+					participantsString.append(participant.getUsername()).append(", ");
 				}
+				participantsString.deleteCharAt(participantsString.length() - 2); // Remove the last comma
+				writer.write(participantsString.toString());
+				writer.newLine();
+
+				writer.write("Message: " + message.toString());
+				writer.newLine();
 			}
 
 			writer.close();
@@ -94,4 +93,5 @@ public class ConversationLog {
 			e.printStackTrace();
 		}
 	}
+
 }
