@@ -188,6 +188,13 @@ public class Client {
                     } else{
                         if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.REQUEST) {
                             conversationMap.get(message.getConversationId()).addMessage(message, Client.this);
+                        } else if (message.getType() == Message.Type.CREATE_CONVERSATION && message.getStatus() == Message.Status.SUCCESS) {
+                            HashSet<Integer> participants = new HashSet<>(message.getReceiverIds());
+                            participants.remove(user.getUserId());
+                            addConversation(message.getConversationId(), new HashSet<>(message.getReceiverIds()));
+                            if (gui.homeView != null) {
+                                gui.homeView.populateConversations(message.getConversationId());
+                            }
                         }
                     }
 

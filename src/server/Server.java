@@ -143,15 +143,23 @@ public class Server {
         }
     }
 
-    public int requestNewConversation(Set<Integer> participants) {
-        int result = -1;
+    public boolean requestNewConversation(Set<Integer> participants) {
+        boolean success = false;
         if (!conversations.contains(participants)) {
             Set<ServerUser> p = participants.stream().map(id -> users.get(id)).collect(Collectors.toSet());
             Conversation convo = new Conversation(p);
             conversations.add(participants);
-            result = convo.getID();
+            // Broadcast Conversation creation message
+            forward(new Message(
+                    Server.SERVER_USER_ID,
+                    new ArrayList<>(participants),
+                    Message.Type.CREATE_CONVERSATION,
+                    Message.Status.SUCCESS,
+                    "",
+                    convo.getID()
+            ));
         }
-        return result;
+        return success;
     }
 
     public void forward(Message msg) {

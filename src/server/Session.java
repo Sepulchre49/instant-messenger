@@ -173,27 +173,7 @@ class Session implements Runnable {
         if (m.getType() == Message.Type.CREATE_CONVERSATION && m.getStatus() == Message.Status.REQUEST) {
             Set<Integer> participants = new HashSet<>(m.getReceiverIds());
             participants.add(m.getSenderId());
-            int convoId = server.requestNewConversation(participants);
-            if (convoId > 0) {
-                success = true;
-                try {
-                    synchronized (out) {
-                        out.writeObject(new Message(
-                                Server.SERVER_USER_ID,
-                                new ArrayList<>() {{
-                                    add(user.getUserId());
-                                }},
-                                Message.Type.CREATE_CONVERSATION,
-                                Message.Status.SUCCESS,
-                                Integer.toString(convoId),
-                                Server.SERVER_CONVO_ID
-                        ));
-                    }
-                } catch (IOException e) {
-                    System.err.printf("Error sending new conversation id to user %s", user.getUsername());
-                    e.printStackTrace();
-                }
-            }
+            return server.requestNewConversation(participants);
         }
         return success;
     }

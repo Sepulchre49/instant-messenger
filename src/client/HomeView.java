@@ -113,8 +113,7 @@ public class HomeView extends JFrame {
         System.exit(1);
     }
 
-    private void populateConversations(int conversationId) {
-        // list item formatting TODO: must replace dynamic set from ClientUser
+    public void populateConversations(int conversationId) {
         JPanel itemPanel = new JPanel();
         itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.LINE_AXIS));
 
@@ -164,7 +163,6 @@ public class HomeView extends JFrame {
         }
 
         private void createConversation(ActionEvent event) {
-            // TODO actually instantiate the conversation
             java.util.List<String> selectedUsers = userList.getSelectedValuesList();
             Set<Integer> participants = new HashSet<>(gui.client.user.getUserId());
             for(String pair : selectedUsers.toArray(new String[0])){
@@ -172,9 +170,6 @@ public class HomeView extends JFrame {
                 String uid = parts[0].substring(4);  // Skips the initial "[UID" to start at the number
                 participants.add(Integer.parseInt(uid));
                 String name = parts[1];  // Removes the ';' at the end
-
-                //System.out.println("Creating conversation for:");
-                //System.out.println("UID: " + uid + ", Name: " + name);
             }
 
 
@@ -185,22 +180,6 @@ public class HomeView extends JFrame {
                     Message.Status.REQUEST,
                     "",
                     -1));
-
-            boolean done = false;
-            do {
-                if (!gui.client.inbound.in.isEmpty()) {
-                    Message res = gui.client.inbound.in.poll();
-                    if (res.getType() == Message.Type.CREATE_CONVERSATION && res.getStatus() == Message.Status.SUCCESS) {
-                        int convoId = Integer.parseInt(res.getContent());
-                        gui.client.addConversation(convoId, participants);
-                        populateConversations(convoId);
-                        done = true;
-                    } else {
-                        gui.client.inbound.in.add(res);
-                    }
-                }
-
-            } while (!done);
 
             dispose();
         }
