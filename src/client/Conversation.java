@@ -2,7 +2,7 @@ package client;
 
 import shared.Message;
 
-import javax.swing.*;
+import javax.swing.text.BadLocationException;
 import java.util.*;
 
 public class Conversation {
@@ -22,7 +22,7 @@ public class Conversation {
         this.messages = messages;
     }
 
-    public void addMessage(Message m) {
+    public void addMessage(Message m) throws BadLocationException {
         messages.add(m);
         if (conversationView != null)
             conversationView.updateChatArea(m);

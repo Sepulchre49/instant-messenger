@@ -3,6 +3,7 @@ package client;
 import server.ServerUser;
 import shared.Message;
 
+import javax.swing.text.BadLocationException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -193,7 +194,7 @@ public class Client {
                             participants.remove(user.getUserId());
                             addConversation(message.getConversationId(), participants);
                             if (gui.homeView != null) {
-                                gui.homeView.populateConversations(message.getConversationId());
+                                gui.homeView.populateConversations(message.getConversationId(), message.getReceiverIds());
                             }
                         }
                     }
@@ -203,6 +204,8 @@ public class Client {
                         System.out.println("Error in InQueue: " + e.getMessage());
                         quit = true;
                     }
+                } catch (BadLocationException e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
