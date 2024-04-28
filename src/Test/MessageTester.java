@@ -25,7 +25,7 @@ public class MessageTester {
 	@Test
 	public void testConstructor() {
 		assertEquals(0,msg.getSenderId());
-		assertEquals(new HashSet<>(Arrays.asList(1,2,3)),msg.getReceiverIds());
+		assertEquals(Arrays.asList(1,2,3),msg.getReceiverIds());
 		assertNotNull(msg.getTimestamp());
 		assertEquals(Message.Type.TEXT,msg.getType());
 		assertEquals(Message.Status.REQUEST,msg.getStatus());
@@ -46,7 +46,7 @@ public class MessageTester {
 	}
 	@Test 
 	public void testGetReceiverId() {
-		assertEquals(new HashSet<>(Arrays.asList(1,2,3)),msg.getReceiverIds());
+		assertEquals(Arrays.asList(1,2,3),msg.getReceiverIds());
 	}
 	
 	@Test

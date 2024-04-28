@@ -36,7 +36,7 @@ public class ServerUserTester {
 	
 	@Test
 	public void testAuthentication() {
-		assertTrue(user.authenticate("Password validated"));
+		assertTrue(user.authenticate("testPassword"));
 		assertFalse(user.authenticate("wrong password"));
 	}
 	
