@@ -187,7 +187,7 @@ public class Client {
                         System.out.println(message.getContent());
                     } else{
                         if (message.getType() == Message.Type.TEXT && message.getStatus() == Message.Status.REQUEST) {
-                            conversationMap.get(message.getConversationId()).addMessage(message, Client.this);
+                            conversationMap.get(message.getConversationId()).addMessage(message);
                         } else if (message.getType() == Message.Type.CREATE_CONVERSATION && message.getStatus() == Message.Status.SUCCESS) {
                             HashSet<Integer> participants = new HashSet<>(message.getReceiverIds());
                             participants.remove(user.getUserId());

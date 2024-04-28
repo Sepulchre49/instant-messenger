@@ -3,6 +3,7 @@ package server;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -99,11 +100,12 @@ public class Server {
         return list;
     }
 
-    public synchronized ServerUser login(String username, String password) {
+    public synchronized ServerUser login(String username, String password, ObjectOutputStream out) {
         if (usernames.containsKey(username)) {
             int id = usernames.get(username);
             ServerUser user = users.get(id);
             if (user.authenticate(password)) {
+                user.setOutputStream(out);
                 activeUsers.add(user.getUserId());
                 System.out.println("Successfully logged in user " + username + " w/ id " + user.getUserId());
                 return user;

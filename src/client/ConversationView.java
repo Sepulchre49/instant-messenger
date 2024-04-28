@@ -50,7 +50,7 @@ public class ConversationView extends JFrame {
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                conversation.setChatArea(null);
+                conversation.setConversationView(null);
                 gui.showHomeView();
             }
         });
@@ -68,7 +68,11 @@ public class ConversationView extends JFrame {
         // chat area and styles
         chatArea = new JTextArea();
         chatArea.setEditable(false);
-        conversation.setChatArea(chatArea);
+        conversation.setConversationView(this);
+
+        for (Message m : conversation.getMessages()) {
+            updateChatArea(m);
+        }
 
 //        chatArea = new JTextPane();
 //        chatArea.setEditable(false);
@@ -160,6 +164,20 @@ public class ConversationView extends JFrame {
 
             // Clear the message field
             messageField.setText("");
+        }
+    }
+
+    public void updateChatArea(Message message) {
+        if (message.getType() == Message.Type.TEXT && !(message.getStatus() == Message.Status.RECEIVED)) {
+            String timestamp = message.getTimestamp().toString();
+            String[] parts = timestamp.split(" ");
+            String truncatedTimestamp = parts[3];
+
+            chatArea.append(String.format("[%s] [UID%s] %s: %s\n",
+                    truncatedTimestamp,
+                    message.getSenderId(),
+                    gui.client.usernameIdMap.get(message.getSenderId()),
+                    message.getContent()));
         }
     }
 }

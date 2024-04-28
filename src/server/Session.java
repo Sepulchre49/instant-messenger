@@ -85,7 +85,7 @@ class Session implements Runnable {
             String username = matcher.group(1);
             String password = matcher.group(2);
 
-            user = server.login(username, password);
+            user = server.login(username, password, out);
 
             if (user != null) {
                 String payload = server.getUserList();
@@ -110,7 +110,6 @@ class Session implements Runnable {
 
                         server.getUserList();
                 success = true;
-                user.setOutputStream(out);
             }
         }
 

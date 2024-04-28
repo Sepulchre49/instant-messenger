@@ -9,7 +9,7 @@ public class Conversation {
     private final int id;
     private final Set<Integer> participants;
     private ArrayList<Message> messages;
-    private JTextArea chatArea;
+    private ConversationView conversationView;
 
     public Conversation(int id, Set<Integer> participants) {
         this.id = id;
@@ -22,10 +22,10 @@ public class Conversation {
         this.messages = messages;
     }
 
-    public void addMessage(Message m, Client client) {
+    public void addMessage(Message m) {
         messages.add(m);
-        if (chatArea != null)
-            updateChatArea(m, client);
+        if (conversationView != null)
+            conversationView.updateChatArea(m);
     }
 
     public int getId() {
@@ -40,26 +40,11 @@ public class Conversation {
         return participants;
     }
 
-    public void setChatArea(JTextArea chatArea) {
-        this.chatArea = chatArea;
+    public void setConversationView(ConversationView view) {
+        conversationView = view;
     }
 
-    public JTextArea getChatArea() {
-        return chatArea;
+    public ConversationView getConversationView() {
+        return conversationView;
     }
-
-    private void updateChatArea(Message message, Client client) {
-        if (message.getType() == Message.Type.TEXT && !(message.getStatus() == Message.Status.RECEIVED)) {
-            String timestamp = message.getTimestamp().toString();
-            String[] parts = timestamp.split(" ");
-            String truncatedTimestamp = parts[3];
-
-            chatArea.append(String.format("[%s] [UID%s] %s: %s\n",
-                    truncatedTimestamp,
-                    message.getSenderId(),
-                    client.usernameIdMap.get(message.getSenderId()),
-                    message.getContent()));
-        }
-    }
-
 }
