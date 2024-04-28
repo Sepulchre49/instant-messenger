@@ -5,6 +5,7 @@ import shared.Message;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -101,7 +102,11 @@ public class HomeView extends JFrame {
                         int RID = Integer.parseInt(idNumberStr);
 
                         System.out.println("Selected ID: " + RID + ", Name: " + nameText);
-                        gui.showConversationView(RID, nameText);
+                        try {
+                            gui.showConversationView(RID, nameText);
+                        } catch (BadLocationException ex) {
+                            throw new RuntimeException(ex);
+                        }
                     }
                 }
             }

@@ -3,6 +3,10 @@ package client;
 import shared.Message;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,8 +16,8 @@ import java.util.ArrayList;
 
 public class ConversationView extends JFrame {
     private final GUI gui;
-    public JTextArea chatArea;
-//    public JTextPane chatArea;
+//    public JTextArea chatArea;
+    public JTextPane chatArea;
 
     /*The less important variables*/
     private JButton backButton;
@@ -24,7 +28,7 @@ public class ConversationView extends JFrame {
     private JLabel conversationLabel;
     private Conversation conversation;
 
-    public ConversationView(GUI gui, Conversation conversation) {
+    public ConversationView(GUI gui, Conversation conversation) throws BadLocationException {
         // main frame
         super("Conversation");
 
@@ -79,7 +83,7 @@ public class ConversationView extends JFrame {
         add(header, BorderLayout.NORTH);
 
         // chat area and styles
-        chatArea = new JTextArea();
+        chatArea = new JTextPane();
         chatArea.setEditable(false);
         conversation.setConversationView(this);
 
@@ -87,24 +91,12 @@ public class ConversationView extends JFrame {
             updateChatArea(m);
         }
 
-//        chatArea = new JTextPane();
-//        chatArea.setEditable(false);
-//
-//        StyledDocument doc = chatArea.getStyledDocument();
-//
-//        Style systemStyle = chatArea.addStyle("System", null);
-//        StyleConstants.setForeground(systemStyle, Color.LIGHT_GRAY);
-//        StyleConstants.setItalic(systemStyle,true);
-//
-//        Style timestampStyle = chatArea.addStyle("Timestamp", null);
-//        StyleConstants.setForeground(timestampStyle, Color.GRAY);
-//        StyleConstants.setItalic(timestampStyle, true);
-//
-//        Style nameSenderStyle = chatArea.addStyle("SenderName", null);
-//        StyleConstants.setForeground(nameSenderStyle, Color.BLUE);
-//        StyleConstants.setBold(nameSenderStyle, true);
-//
-//        Style messageStyle = chatArea.addStyle("Message", null);
+        StyledDocument doc = chatArea.getStyledDocument();
+
+        Style systemStyle = chatArea.addStyle("System", null);
+        StyleConstants.setForeground(systemStyle, Color.LIGHT_GRAY);
+        StyleConstants.setItalic(systemStyle,true);
+        StyleConstants.setBold(systemStyle,true);
 
         scrollPane = new JScrollPane(chatArea);
         add(scrollPane, BorderLayout.CENTER);
@@ -115,7 +107,7 @@ public class ConversationView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     sendMessage();
-                } catch (IOException | ClassNotFoundException ex) {
+                } catch (IOException | ClassNotFoundException | BadLocationException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -127,7 +119,7 @@ public class ConversationView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     sendMessage();
-                } catch (IOException | ClassNotFoundException ex) {
+                } catch (IOException | ClassNotFoundException | BadLocationException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -141,12 +133,10 @@ public class ConversationView extends JFrame {
         setVisible(true);
 
         // opening message
-        chatArea.setForeground(Color.gray);
-        chatArea.append("[System] You can now send messages.\n");
-        chatArea.setForeground(Color.black);
+        doc.insertString(doc.getLength(), "[System] You can now send messages.\n", systemStyle);
     }
 
-    private void sendMessage() throws IOException, ClassNotFoundException {
+    private void sendMessage() throws IOException, ClassNotFoundException, BadLocationException {
         String message = messageField.getText().trim();
 
         if (message.equals("/quit")) {
@@ -173,17 +163,40 @@ public class ConversationView extends JFrame {
         }
     }
 
-    public void updateChatArea(Message message) {
+    public void updateChatArea(Message message) throws BadLocationException {
         if (message.getType() == Message.Type.TEXT && !(message.getStatus() == Message.Status.RECEIVED)) {
             String timestamp = message.getTimestamp().toString();
             String[] parts = timestamp.split(" ");
             String truncatedTimestamp = parts[3];
 
-            chatArea.append(String.format("[%s] [UID%s] %s: %s\n",
-                    truncatedTimestamp,
-                    message.getSenderId(),
-                    gui.client.usernameIdMap.get(message.getSenderId()),
-                    message.getContent()));
+            StyledDocument doc = chatArea.getStyledDocument();
+
+            Style timestampStyle = chatArea.addStyle("Timestamp", null);
+            StyleConstants.setForeground(timestampStyle, Color.GRAY);
+            StyleConstants.setItalic(timestampStyle, true);
+
+            Style nameSenderStyle = chatArea.addStyle("SenderName", null);
+            StyleConstants.setForeground(nameSenderStyle, Color.RED);
+            StyleConstants.setBold(nameSenderStyle, true);
+
+            Style nameReciepientStyle = chatArea.addStyle("RecipientName", null);
+            StyleConstants.setForeground(nameReciepientStyle, Color.BLUE);
+            StyleConstants.setBold(nameReciepientStyle, true);
+
+            Style messageStyle = chatArea.addStyle("Message", null);
+
+            // creating the actual damn message
+            doc.insertString(doc.getLength(), String.format("[%s] ",truncatedTimestamp), timestampStyle);
+            doc.insertString(doc.getLength(), String.format("[UID%s] ", message.getSenderId()), timestampStyle);
+
+            if (message.getSenderId() == gui.client.user.getUserId()) {
+                doc.insertString(doc.getLength(), String.format("%s: ", gui.client.usernameIdMap.get(message.getSenderId())), nameSenderStyle);
+            } else {
+                doc.insertString(doc.getLength(), String.format("%s: ", gui.client.usernameIdMap.get(message.getSenderId())), nameReciepientStyle);
+            }
+
+            doc.insertString(doc.getLength(), message.getContent() + "\n", messageStyle);
+
         }
     }
 }
