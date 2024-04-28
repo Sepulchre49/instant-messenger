@@ -191,7 +191,7 @@ public class Client {
                         } else if (message.getType() == Message.Type.CREATE_CONVERSATION && message.getStatus() == Message.Status.SUCCESS) {
                             HashSet<Integer> participants = new HashSet<>(message.getReceiverIds());
                             participants.remove(user.getUserId());
-                            addConversation(message.getConversationId(), new HashSet<>(message.getReceiverIds()));
+                            addConversation(message.getConversationId(), participants);
                             if (gui.homeView != null) {
                                 gui.homeView.populateConversations(message.getConversationId());
                             }
