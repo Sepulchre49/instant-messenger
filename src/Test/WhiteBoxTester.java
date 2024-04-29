@@ -8,6 +8,7 @@ import org.junit.runners.Suite;
 
 @Suite.SuiteClasses({
 	ClientTester.class,
+	ClientUserTester.class,
 	ConversationTest.class, 
 	ServerUserTester.class,
 	MessageTester.class
