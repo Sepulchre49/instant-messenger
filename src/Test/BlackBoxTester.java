@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import client.ClientUser;
 import server.Conversation;
 import server.ServerUser;
 import shared.Message;
@@ -47,8 +48,15 @@ public class BlackBoxTester {
 		testReceiveMessage();
 		testLoginandLogout();
 		
-		
+		System.out.println("ClientUser Test: ");
+		testCreateUser();
+		testSetConversationId();
+		testClientReceiveMessage();
+		testLogoutForClient();
+		testLoadConversation();
 		System.out.println("Converastion Test: ");
+		
+		System.out.println("Message Test: ");
 		
 
 	}
@@ -92,5 +100,38 @@ public class BlackBoxTester {
 		
 		
 	}
+	public static void loginClientTest() {
+		ClientUser user=new ClientUser(456,"John");
+		boolean loggedIn = user.login();
+		System.out.println("User logged in: "+ loggedIn);
+		System.out.println("loginClientTest pass!");
+	}
+	
+	public static void testSetConversationId() {
+		ClientUser user = new ClientUser(456,"John");
+		user.setConversationId(456);
+		System.out.println("Conversation ID: "+ user.getConversationId());
+	}
+	
+	public static void testClientReceiveMessage() {
+		ClientUser user = new ClientUser(456, "John");
+		Message msg= new Message(1,null,Message.Type.TEXT,Message.Status.REQUEST,"Hello", 1);
+		user.receive(msg);
+		System.out.println("Receive message: "+ msg.getContent());
+	}
+	
+	public static void testLogoutForClient() {
+		ClientUser user= new ClientUser(456,"John");
+		user.logout();
+		System.out.println("User logged out!!");
+	}
+	
+	public static void testLoadConversation() {
+		ClientUser user= new ClientUser(456,"John");
+		user.loadConversation();
+		System.out.println("Conversation Loaded...");
+	}
+	
+	
 
 }
