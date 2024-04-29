@@ -32,10 +32,10 @@ public class Client {
     public ClientUser user;
     public static GUI gui;
 
-    public Client() {
+    public Client(String host, int port) {
         gui = null;
-        this.host = "127.0.0.1";
-        this.port = 3000;
+        this.host = host;
+        this.port = port;
 
         usernameIdMap = new HashMap<>();
         conversationMap = new HashMap<>();
@@ -43,7 +43,7 @@ public class Client {
         scanner = new Scanner(System.in);
     }
 
-    public void connectToServer() throws IOException {
+    public void connectToServer(String host, int port) throws IOException {
         try {
             this.socket = new Socket(this.host, this.port);
             this.write = new ObjectOutputStream(socket.getOutputStream());
