@@ -1,6 +1,10 @@
 package Test;
 
 import java.io.File;
+import java.io.Serializable;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,16 +51,20 @@ public class BlackBoxTester {
 		testAddConversation();
 		testReceiveMessage();
 		testLoginandLogout();
-		
+		System.out.println("//////////////////////////////");
 		System.out.println("ClientUser Test: ");
 		testCreateUser();
 		testSetConversationId();
 		testClientReceiveMessage();
 		testLogoutForClient();
 		testLoadConversation();
+		System.out.println("//////////////////////////////");
 		System.out.println("Converastion Test: ");
 		
 		System.out.println("Message Test: ");
+		Message msg =createMessage(Arrays.asList(2,3));
+		//Display attributes
+		displayMessage(msg);
 		
 
 	}
@@ -132,6 +140,25 @@ public class BlackBoxTester {
 		System.out.println("Conversation Loaded...");
 	}
 	
+	public static Message createMessage(Collection<Integer>recipients) {
+		int senderId = 1;
+		Message.Type type= Message.Type.TEXT;
+		Message.Status status = Message.Status.REQUEST;
+		String content = "hello";
+		int conversationId= 123;
+		return new Message(senderId,recipients,type,status,content,conversationId);
+		
+	}
 	
+	public static void displayMessage(Message msg) {
+		System.out.println("Message display :");
+		System.out.println("SenderID: "+ msg.getSenderId());
+		System.out.println("ReceiverID: "+ msg.getReceiverIds());
+		System.out.println("Type: "+ msg.getType());
+		System.out.println("Content: "+ msg.getContent());
+		System.out.println("ConversationID: "+ msg.getConversationId());
+		System.out.println("Timestamp"+ msg.getTimestamp());
+	
+	}
 
 }

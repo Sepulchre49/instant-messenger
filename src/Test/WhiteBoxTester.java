@@ -7,7 +7,8 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 
 @Suite.SuiteClasses({
-	ClientTester.class, 
+	ClientTester.class,
+	ConversationTest.class, 
 	ServerUserTester.class,
 	MessageTester.class
 })
