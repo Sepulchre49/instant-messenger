@@ -7,9 +7,10 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 
 @Suite.SuiteClasses({
-	ClientTester.class, 
-	ServerUserTester.class,
-	MessageTester.class
+        ClientTester.class,
+        ServerUserTester.class,
+        MessageTester.class,
+        ConversationTest.class
 })
 public class WhiteBoxTester {
 }

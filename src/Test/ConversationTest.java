@@ -47,7 +47,7 @@ public class ConversationTest {
 		File logFile = new File("conversation_log.txt");
 		Conversation conversation = new Conversation(participants);
 		//Add Message 
-		Message msg1= new Message(1,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"Hello", 1);
+		Message msg1= new Message(1,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"Hello", conversation.getID());
 		conversation.addMsg(msg1);
 		//verify the message 
 		List<Message> allMessage = conversation.getAllMsgs();
@@ -80,8 +80,8 @@ public class ConversationTest {
 		Conversation conversation = new Conversation(participants);
 		
 		//Add more messages
-		Message msg2= new Message(2,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"How are you doing?", 1);
-		Message msg3= new Message(3,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"I am good , Thanks!", 1);
+		Message msg2= new Message(2,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"How are you doing?", conversation.getID());
+		Message msg3= new Message(3,recipientIds,Message.Type.TEXT, Message.Status.SUCCESS,"I am good , Thanks!", conversation.getID());
 		conversation.addMsg(msg2);
 		conversation.addMsg(msg3);
 		
@@ -95,16 +95,16 @@ public class ConversationTest {
 		Set<ServerUser> participants = new HashSet<>();
 		Conversation conversation = new Conversation(participants);
 		// verify conversation ID
-		assertEquals(1,conversation.getID());
+		assertEquals(3,conversation.getID());
 	}
 	
 	@Test
 	public void getLogTest() {
 		Set<ServerUser> participants = new HashSet<>();
-		File logFile = new File("conversation_log.txt");
 		Conversation conversation = new Conversation(participants);
+		File log = new File(conversation.getID() + ".log");
 		//verify log file
-		assertEquals(logFile, conversation.getLog());
+		assertEquals(log, conversation.getLog());
 		
 	}
 }
