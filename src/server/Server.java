@@ -100,12 +100,17 @@ public class Server {
         return list;
     }
 
-    public synchronized ServerUser login(String username, String password, ObjectOutputStream out) {
+    public synchronized ServerUser login(String username, String password, ObjectOutputStream out) throws IOException {
         if (usernames.containsKey(username)) {
             int id = usernames.get(username);
             ServerUser user = users.get(id);
             if (user.authenticate(password)) {
                 user.setOutputStream(out);
+                try {
+                    sendLoginPayload(user, out);
+                } catch (IOException e) {
+                    throw new IOException("Error sending login payload to " + user.getUsername(), e);
+                }
                 activeUsers.add(user.getUserId());
                 System.out.println("Successfully logged in user " + username + " w/ id " + user.getUserId());
                 return user;
@@ -117,6 +122,30 @@ public class Server {
             System.out.println("User " + username + " does not exist on the system.");
             return null;
         }
+    }
+
+    private void sendLoginPayload(ServerUser user, ObjectOutputStream out) throws IOException {
+        String payload = getUserList();
+
+        for (Conversation conversation : user.getConversations()) {
+            payload += conversation.getID();
+            for (ServerUser participant : conversation.getParticipants()) {
+                payload += " " + participant.getUserId();
+            }
+            payload += "\n";
+        }
+
+        Message res = new Message(
+                Server.SERVER_USER_ID,
+                new ArrayList<>() {{
+                    add(user.getUserId());
+                }},
+                Message.Type.LOGIN,
+                Message.Status.SUCCESS,
+                payload,
+                Server.SERVER_CONVO_ID);
+
+        out.writeObject(res);
     }
 
     public synchronized void logout(ServerUser user) {

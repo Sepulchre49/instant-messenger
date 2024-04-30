@@ -73,53 +73,17 @@ class Session implements Runnable {
         String regex = "username:\\s*(\\w+)\\s+password:\\s*(\\w+)";
         Matcher matcher = Pattern.compile(regex).matcher(m.getContent());
 
-        Message res = new Message(
-                    Server.SERVER_USER_ID,
-                    null,
-                    Message.Type.LOGIN, 
-                    Message.Status.FAILURE, 
-                    "Failed to log in!",
-                    Server.SERVER_CONVO_ID);
-
         if (matcher.find()) {
             String username = matcher.group(1);
             String password = matcher.group(2);
 
-            user = server.login(username, password, out);
-
-            if (user != null) {
-                String payload = server.getUserList();
-
-                for (Conversation conversation : user.getConversations()) {
-                    payload += conversation.getID();
-                    for (ServerUser participant : conversation.getParticipants()) {
-                        payload += " " + participant.getUserId();
-                    }
-                    payload += "\n";
-                }
-
-                res = new Message(
-                        Server.SERVER_USER_ID,
-                        new ArrayList<>() {{
-                            add(user.getUserId());
-                        }},
-                        Message.Type.LOGIN, 
-                        Message.Status.SUCCESS, 
-                        payload,
-                        Server.SERVER_CONVO_ID);
-
-                        server.getUserList();
-                success = true;
+            try {
+                user = server.login(username, password, out);
+                success = user != null;
+            } catch (IOException e) {
+                System.err.println("Error trying to login user " + username);
+                e.printStackTrace();
             }
-        }
-
-        try {
-            synchronized (out) {
-                out.writeObject(res);
-            }
-        } catch (IOException e) {
-            System.err.println("Error writing login success message to " + clientAddress);
-            e.printStackTrace();
         }
 
         return success;
